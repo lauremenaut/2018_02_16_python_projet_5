@@ -36,7 +36,6 @@ CREATE TABLE Product (
 """
 CREATE TABLE Product (
                 product_id INT UNSIGNED AUTO_INCREMENT NOT NULL,
-                categories VARCHAR(150) NOT NULL,
                 name VARCHAR(100) UNIQUE NOT NULL,
                 description VARCHAR(100) NOT NULL,
                 brand VARCHAR(100) UNIQUE NOT NULL,
