@@ -9,11 +9,9 @@ App class manages interactions with the user.
 
 import argparse
 
-import records
-
-import db_creator
+import db_creator # Est-ce mieux d'importer seulement la classe ?
 import db_updater
-import tags
+from config import database, categories
 
 
 class App:
@@ -22,10 +20,8 @@ class App:
         """ App constructor """
 
         if update:
-            healthier_food = db_creator.DB_Creator()
-            healthier_food = db_updater.DB_Updater()
-
-        self.database = records.Database('mysql+pymysql://lauredougui:mysql@localhost/healthier_food?charset=utf8')
+            db_creator.DB_Creator()
+            db_updater.DB_Updater()
         carry_on = True
         print("\nBonjour, que souhaitez-vous faire ?")
 
@@ -58,13 +54,13 @@ class App:
     def choose_categorie(self):
         """ Manages categorie selection """
         print("\nVeuillez saisir le numéro d'une categorie :\n")
-        for categorie in tags.categories:
-            position = tags.categories.index(categorie) + 1
+        for categorie in categories:
+            position = categories.index(categorie) + 1
             print("{} - {}".format(position, categorie))
 
         try:
             categorie_choice = int(input())
-            self.selected_categorie = tags.categories[categorie_choice - 1]
+            self.selected_categorie = categories[categorie_choice - 1]
         except ValueError:
             print("Saisie invalide")
             self.choose_categorie()
@@ -74,7 +70,7 @@ class App:
 
     def choose_unhealthy_product(self):
         """ Manages product selection """
-        unhealthy_products = self.database.query("""SELECT Product.name
+        unhealthy_products = database.query("""SELECT Product.name
             FROM Product
             JOIN Product_Categorie
             ON Product.product_id = Product_Categorie.product_id
@@ -86,7 +82,7 @@ class App:
 
         print("\nVeuillez maintenant saisir le numéro d'un produit de la categorie {} :\n".format(self.selected_categorie))
 
-        # Comment accéder au nombre de produits ? L'objet "products" n'a pas de longueur ...
+        # Comment accéder au nombre de produits ? L'objet "unhealthy_products" n'a pas de longueur ...
 
         for i in range(10):
             try:
@@ -108,7 +104,7 @@ class App:
     def get_healthy_product(self):
         """ Returns an healthy product and its details """
         #  Work in progress : ajouter la correspondance de plusieurs catégories pour améliorer la pertinence du résultat
-        self.healthy_products = self.database.query("""SELECT Product.product_id, Product.name, Product.description, Product.store_id, Product.url
+        self.healthy_products = database.query("""SELECT Product.product_id, Product.name, Product.description, Product.store_id, Product.url
             FROM Product
             JOIN Product_Categorie
             ON Product.product_id = Product_Categorie.product_id
@@ -128,8 +124,6 @@ class App:
         print("{}".format(self.healthy_products[0]["url"]))
         # Ajoute-t-on d'autres informations ?
 
-        #  Faut-il ajouter un 'return' ?
-
     def save_result(self):
         """ Manages result backup """
         print("\nSouhaitez-vous enregistrer ce résultat pour le retrouver plus tard ?\n")
@@ -147,23 +141,23 @@ class App:
             self.save_result()
         else:
             if backup_choice == 1:
-                self.database.query("""INSERT INTO History
+                database.query("""INSERT INTO History
                     VALUES (NULL, NOW(), :unhealthy_product, :healthy_product, :description, :store, :url)""",
-                                    unhealthy_product=self.selected_unhealthy_product,
-                                    healthy_product=self.healthy_products[0]["name"],
-                                    description=self.healthy_products[0]["description"],
-                                    store=self.healthy_products[0]["store_id"],
-                                    url=self.healthy_products[0]["url"])
+                               unhealthy_product=self.selected_unhealthy_product,
+                               healthy_product=self.healthy_products[0]["name"],
+                               description=self.healthy_products[0]["description"],
+                               store=self.healthy_products[0]["store_id"],
+                               url=self.healthy_products[0]["url"])
                 print("\nRésultat sauvegardé !")
             elif backup_choice == 2:
                 pass
-        finally:
-            print("\nQue souhaitez-vous faire maintenant ?")
-            # Attention : autant de print que d'exceptions levées ...
+
+        print("\nQue souhaitez-vous faire maintenant ?")
+        # Attention : autant de print que d'exceptions levées ...
 
     def get_saved_results(self):
         """ Manages """
-        saved_results = self.database.query("""SELECT *
+        saved_results = database.query("""SELECT *
             FROM History
             ORDER BY request_date DESC
             LIMIT 20""")
@@ -183,8 +177,9 @@ def parse_arguments():
     """ Returns an arguments parser with an "update" argument. """
     parser = argparse.ArgumentParser()
     parser.add_argument("-u", "--update", action="store_true",
-        help="database update")
+                        help="database update")
     return parser.parse_args()
+
 
 def main():
     argument = parse_arguments()
