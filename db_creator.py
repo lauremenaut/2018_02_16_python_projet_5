@@ -3,7 +3,7 @@
 
 """ Sets DB_Creator class.
 
-Creator class creates a new database called "healthier_food".
+Creator class creates a new database called 'healthier_food'.
 
 """
 
@@ -58,9 +58,12 @@ class DB_Creator:
 
         self.db.query('''CREATE TABLE History (
                         history_id INT UNSIGNED AUTO_INCREMENT NOT NULL,
-                        request_date DATE NOT NULL,
-                        healthy_product_id INT NOT NULL,
-                        bad_product_id INT NOT NULL,
+                        request_date DATETIME,
+                        unhealthy_product VARCHAR(100),
+                        healthy_product VARCHAR(100),
+                        description VARCHAR(100),
+                        store VARCHAR(50),
+                        url VARCHAR(150),
                         PRIMARY KEY (history_id))''')
 
         self.db.query('''ALTER TABLE Product ADD CONSTRAINT store_product_fk
