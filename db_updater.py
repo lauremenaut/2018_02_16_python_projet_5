@@ -8,17 +8,15 @@ DB_Updater class fills "healthier_food" database, connecting with Open Food Fact
 """
 
 import requests
-import records
 
-import tags
+from config import database, nutrition_grades, categories
 
 class DB_Updater:
     """ Sets DB_Updater class """
     def __init__(self):
         """ DB_Updater constructor """
-        self.database = records.Database('mysql+pymysql://lauredougui:mysql@localhost/healthier_food?charset=utf8')
-        for self.nutrition_grade in tags.nutrition_grades:
-            for self.categorie in tags.categories:
+        for self.nutrition_grade in nutrition_grades:
+            for self.categorie in categories:
                 self.products = self.get_products()
                 self.fill_db(self.products)
 
@@ -26,7 +24,6 @@ class DB_Updater:
 
     def get_products(self):
         """ Gets products from Open Food Facts API. """
-
         criteria = {
             "action": "process",
             "json": 1,
@@ -42,9 +39,7 @@ class DB_Updater:
             }
 
         response = requests.get('https://fr.openfoodfacts.org/cgi/search.pl', params=criteria)
-
         data = response.json()
-
         products = data["products"]  # products est une liste de dictionnaires correspondant aux produits de la page 1
         return products
 
@@ -69,20 +64,20 @@ class DB_Updater:
                 print("Missing data")
 
             if categories and name and description and brand and url and store and nutrition_grade:
-                self.database.query("""INSERT IGNORE INTO Product (name, description, brand, url, nutriscore, allergens, traces, labels)
+                database.query("""INSERT IGNORE INTO Product (name, description, brand, url, nutriscore, allergens, traces, labels)
                     VALUES (:name, :description, :brand, :url, :nutrition_grade, :allergens, :traces, :labels)""",
-                                    name=name, description=description, brand=brand, url=url, nutrition_grade=nutrition_grade, allergens=allergens, traces=traces, labels=labels)
+                               name=name, description=description, brand=brand, url=url, nutrition_grade=nutrition_grade, allergens=allergens, traces=traces, labels=labels)
 
-                self.database.query('INSERT IGNORE INTO Store (name) VALUES (:store)', store=store)
+                database.query('INSERT IGNORE INTO Store (name) VALUES (:store)', store=store)
 
                 for categorie in categories.split(","):
-                    self.database.query('INSERT IGNORE INTO Categorie (name) VALUES (:categorie)', categorie=categorie)
+                    database.query('INSERT IGNORE INTO Categorie (name) VALUES (:categorie)', categorie=categorie)
 
-                    self.database.query("""INSERT IGNORE INTO Product_Categorie (product_id, categorie_id) VALUES
+                    database.query("""INSERT IGNORE INTO Product_Categorie (product_id, categorie_id) VALUES
                         ((SELECT product_id FROM Product WHERE name = :name),
                         (SELECT categorie_id FROM Categorie WHERE name = :categorie))""", name=name, categorie=categorie)
 
-                self.database.query("""UPDATE Product SET store_id =
+                database.query("""UPDATE Product SET store_id =
                     (SELECT store_id FROM Store WHERE name = :store)
                     WHERE name = :name""", store=store, name=name)
 
@@ -96,7 +91,7 @@ class DB_Updater:
 
 
 def main():
-    healthier_food = DB_Updater()
+    DB_Updater()
 
 
 if __name__ == "__main__":
