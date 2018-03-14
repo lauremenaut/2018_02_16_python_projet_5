@@ -16,38 +16,41 @@ class DB_Updater:
     """ Sets DB_Updater class """
     def __init__(self):
         """ DB_Updater constructor """
+        self.database = records.Database('mysql+pymysql://lauredougui:mysql@localhost/healthier_food?charset=utf8')
+        for self.nutrition_grade in tags.nutrition_grades:
+            for self.categorie in tags.categories:
+                self.products = self.get_products()
+                self.fill_db(self.products)
 
         #  Dois-je mettre des "self" devant toutes mes variables, ou seulement devant celles que j'appelle depuis l'extérieur ?
 
-        for nutrition_grade in tags.nutrition_grades:
-            for categorie in tags.categories:
-                criteria = {
-                    "action": "process",
-                    "json": 1,
-                    "countries": "France",
-                    "page_size": 250,
-                    "page": 1,
-                    "tagtype_0": "categories",
-                    "tag_contains_0": "contains",
-                    "tag_0": categorie,
-                    "tagtype_1": "nutrition_grades",
-                    "tag_contains_1": "contains",
-                    "tag_1": nutrition_grade
-                    }
+    def get_products(self):
+        """ Gets products from Open Food Facts API. """
 
-                response = requests.get('https://fr.openfoodfacts.org/cgi/search.pl', params=criteria)
+        criteria = {
+            "action": "process",
+            "json": 1,
+            "countries": "France",
+            "page_size": 250,
+            "page": 1,
+            "tagtype_0": "categories",
+            "tag_contains_0": "contains",
+            "tag_0": self.categorie,
+            "tagtype_1": "nutrition_grades",
+            "tag_contains_1": "contains",
+            "tag_1": self.nutrition_grade
+            }
 
-                data = response.json()
+        response = requests.get('https://fr.openfoodfacts.org/cgi/search.pl', params=criteria)
 
-                self.products = data["products"]  # products est une liste de dictionnaires correspondant aux produits de la page 1
+        data = response.json()
 
-                self.database = records.Database('mysql+pymysql://lauredougui:mysql@localhost/healthier_food?charset=utf8')
+        products = data["products"]  # products est une liste de dictionnaires correspondant aux produits de la page 1
+        return products
 
-                self.fill_db()
-
-    def fill_db(self):
+    def fill_db(self, products):
         """ Contains SQL requests to fill database """
-        for product in self.products:
+        for product in products:
             try:
                 categories = product["categories"]
                 name = product["product_name"]
