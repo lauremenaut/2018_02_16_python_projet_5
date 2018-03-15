@@ -9,8 +9,9 @@ App class manages interactions with the user.
 
 import argparse
 
-import db_creator # Est-ce mieux d'importer seulement la classe ?
-import db_updater
+from db_creator import DB_Creator
+from db_updater import DB_Updater
+
 from config import database, categories
 
 
@@ -20,8 +21,10 @@ class App:
         """ App constructor """
 
         if update:
-            db_creator.DB_Creator()
-            db_updater.DB_Updater()
+            DB_Creator()
+            DB_Updater()
+
+        # database.query('USE healthier_food')
         carry_on = True
         print("\nBonjour, que souhaitez-vous faire ?")
 
@@ -160,7 +163,7 @@ class App:
         saved_results = database.query("""SELECT *
             FROM History
             ORDER BY request_date DESC
-            LIMIT 20""")
+            LIMIT 10""")
 
         print("\nVoici les résultats de vos dernières recherches :")
 
