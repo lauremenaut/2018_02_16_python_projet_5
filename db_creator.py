@@ -7,7 +7,7 @@ Creator class creates a new database called 'healthier_food'.
 
 """
 
-from config import database
+from config import database, db_name
 
 
 class DB_Creator:
@@ -15,19 +15,32 @@ class DB_Creator:
     def __init__(self):
         """ DB_Creator constructor """
         self.create_database()
+        self.delete_foreign_keys()
         self.create_tables()
-        self.create_foreign_keys()
-
-        #  La base doit déjà exister pour pouvoir s'y connecter ... un peu paradoxal pour une classe de création :-/
+        self.create_foreign_keys()  # A régler !!
 
     def create_database(self):
         """ Manages database creation """
-        database.query('DROP DATABASE IF EXISTS healthier_food')
-        database.query('CREATE DATABASE healthier_food CHARACTER SET "utf8"')
-        database.query('USE healthier_food')
+        # database.query(f'DROP DATABASE IF EXISTS {db_name}')
+        # database.query(f'CREATE DATABASE {db_name} CHARACTER SET "utf8"')
+        database.query(f'CREATE DATABASE IF NOT EXISTS {db_name} CHARACTER SET "utf8"')
+        database.query(f'USE {db_name}')
+
+    def delete_foreign_keys(self):
+        """ Manages foreign keys creation """
+
+        try:
+            database.query('''ALTER TABLE Product DROP FOREIGN KEY store_product_fk''')
+
+            database.query('''ALTER TABLE Product_Categorie DROP FOREIGN KEY product_product_categorie_fk''')
+
+            database.query('''ALTER TABLE Product_Categorie DROP FOREIGN KEY categorie_product_categorie_fk''')
+        except:
+            print("Foreign keys not dropped")
 
     def create_tables(self):
         """ Manages tables creation """
+        database.query('DROP TABLE IF EXISTS Product')
         database.query('''CREATE TABLE Product (
                         product_id INT UNSIGNED AUTO_INCREMENT NOT NULL,
                         name VARCHAR(100) UNIQUE NOT NULL,
@@ -44,22 +57,25 @@ class DB_Creator:
                         labels VARCHAR(150),
                         PRIMARY KEY (product_id))''')
 
+        database.query('DROP TABLE IF EXISTS Store')
         database.query('''CREATE TABLE Store (
                         store_id SMALLINT UNSIGNED AUTO_INCREMENT NOT NULL,
                         name VARCHAR(50) UNIQUE NOT NULL,
                         PRIMARY KEY (store_id))''')
 
+        database.query('DROP TABLE IF EXISTS Categorie')
         database.query('''CREATE TABLE Categorie (
                         categorie_id SMALLINT UNSIGNED AUTO_INCREMENT NOT NULL,
                         name VARCHAR(150) UNIQUE NOT NULL,
                         PRIMARY KEY (categorie_id))''')
 
+        database.query('DROP TABLE IF EXISTS Product_Categorie')
         database.query('''CREATE TABLE Product_Categorie (
                         product_id INT UNSIGNED NOT NULL,
                         categorie_id SMALLINT UNSIGNED NOT NULL,
                         PRIMARY KEY (product_id, categorie_id))''')
 
-        database.query('''CREATE TABLE History (
+        database.query('''CREATE TABLE IF NOT EXISTS History (
                         history_id INT UNSIGNED AUTO_INCREMENT NOT NULL,
                         request_date DATETIME,
                         unhealthy_product VARCHAR(100),
@@ -71,23 +87,27 @@ class DB_Creator:
 
     def create_foreign_keys(self):
         """ Manages foreign keys creation """
-        database.query('''ALTER TABLE Product ADD CONSTRAINT store_product_fk
-        FOREIGN KEY (store_id)
-        REFERENCES Store (store_id)
-        ON DELETE NO ACTION
-        ON UPDATE NO ACTION''')
 
-        database.query('''ALTER TABLE Product_Categorie ADD CONSTRAINT product_product_categorie_fk
-        FOREIGN KEY (product_id)
-        REFERENCES Product (product_id)
-        ON DELETE NO ACTION
-        ON UPDATE NO ACTION''')
+        try:
+            database.query('''ALTER TABLE Product ADD CONSTRAINT store_product_fk
+            FOREIGN KEY (store_id)
+            REFERENCES Store (store_id)
+            ON DELETE NO ACTION
+            ON UPDATE NO ACTION''')
 
-        database.query('''ALTER TABLE Product_Categorie ADD CONSTRAINT categorie_product_categorie_fk
-        FOREIGN KEY (categorie_id)
-        REFERENCES Categorie (categorie_id)
-        ON DELETE NO ACTION
-        ON UPDATE NO ACTION''')
+            database.query('''ALTER TABLE Product_Categorie ADD CONSTRAINT product_product_categorie_fk
+            FOREIGN KEY (product_id)
+            REFERENCES Product (product_id)
+            ON DELETE NO ACTION
+            ON UPDATE NO ACTION''')
+
+            database.query('''ALTER TABLE Product_Categorie ADD CONSTRAINT categorie_product_categorie_fk
+            FOREIGN KEY (categorie_id)
+            REFERENCES Categorie (categorie_id)
+            ON DELETE NO ACTION
+            ON UPDATE NO ACTION''')
+        except:
+            print("Foreign keys not added")
 
 
 def main():
