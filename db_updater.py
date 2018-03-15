@@ -7,9 +7,9 @@ DB_Updater class fills "healthier_food" database, connecting with Open Food Fact
 
 """
 
-import requests
+from requests import get
 
-from config import database, nutrition_grades, categories
+from config import database, db_name, nutrition_grades, categories
 
 class DB_Updater:
     """ Sets DB_Updater class """
@@ -20,15 +20,13 @@ class DB_Updater:
                 self.products = self.get_products()
                 self.fill_db(self.products)
 
-        #  Dois-je mettre des "self" devant toutes mes variables, ou seulement devant celles que j'appelle depuis l'extérieur ?
-
     def get_products(self):
         """ Gets products from Open Food Facts API. """
         criteria = {
             "action": "process",
             "json": 1,
             "countries": "France",
-            "page_size": 250,
+            "page_size": 100,
             "page": 1,
             "tagtype_0": "categories",
             "tag_contains_0": "contains",
@@ -38,13 +36,15 @@ class DB_Updater:
             "tag_1": self.nutrition_grade
             }
 
-        response = requests.get('https://fr.openfoodfacts.org/cgi/search.pl', params=criteria)
+        response = get('https://fr.openfoodfacts.org/cgi/search.pl', params=criteria)
         data = response.json()
         products = data["products"]  # products est une liste de dictionnaires correspondant aux produits de la page 1
         return products
 
     def fill_db(self, products):
         """ Contains SQL requests to fill database """
+        # database.query('SET NAMES "utf8"')
+        # database.query(f'USE {db_name}')
         for product in products:
             try:
                 categories = product["categories"]
@@ -63,7 +63,7 @@ class DB_Updater:
             except KeyError:
                 print("Missing data")
 
-            if categories and name and description and brand and url and store and nutrition_grade:
+            if all([categories, name, description, brand, url, store, nutrition_grade]):
                 database.query("""INSERT IGNORE INTO Product (name, description, brand, url, nutriscore, allergens, traces, labels)
                     VALUES (:name, :description, :brand, :url, :nutrition_grade, :allergens, :traces, :labels)""",
                                name=name, description=description, brand=brand, url=url, nutrition_grade=nutrition_grade, allergens=allergens, traces=traces, labels=labels)
@@ -82,12 +82,6 @@ class DB_Updater:
                     WHERE name = :name""", store=store, name=name)
 
         print(len(self.products))
-
-        # energy = product["energy-from-fat"]
-        # additives = product["additives"]
-
-        # :energy, :additives,
-        # energy=energy, additives=additives,
 
 
 def main():
