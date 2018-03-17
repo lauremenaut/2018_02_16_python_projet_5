@@ -21,21 +21,29 @@ class DB_Creator:
 
     def create_database(self):
         """ Manages database creation """
+
+# Avant de pouvoir créer la base, il faut se connecter via root pour donner
+# les droits à l'utilisateur 'lauredougui' sur cette nouvelle base.
+# GRANT ALL PRIVILEGES ON healthier_food.* TO 'lauredougui'@'localhost';
+
         # database.query(f'DROP DATABASE IF EXISTS {db_name}')
         # database.query(f'CREATE DATABASE {db_name} CHARACTER SET "utf8"')
-        database.query(f'CREATE DATABASE IF NOT EXISTS {db_name} CHARACTER SET "utf8"')
+        database.query(f'''CREATE DATABASE IF NOT EXISTS {db_name}
+            CHARACTER SET "utf8"''')
         database.query(f'USE {db_name}')
 
     def delete_foreign_keys(self):
         """ Manages foreign keys creation """
-
         try:
-            database.query('''ALTER TABLE Product DROP FOREIGN KEY store_product_fk''')
-
-            database.query('''ALTER TABLE Product_Categorie DROP FOREIGN KEY product_product_categorie_fk''')
-
-            database.query('''ALTER TABLE Product_Categorie DROP FOREIGN KEY categorie_product_categorie_fk''')
-        except:
+            database.query('''ALTER TABLE Product_Categorie
+                DROP FOREIGN KEY product_product_categorie_fk''')
+            database.query('''ALTER TABLE Product_Categorie
+                DROP FOREIGN KEY categorie_product_categorie_fk''')
+            database.query('''ALTER TABLE Product_Store
+                DROP FOREIGN KEY product_product_store_fk''')
+            database.query('''ALTER TABLE Product_Store
+                DROP FOREIGN KEY store_product_store_fk''')
+        except:  # Comment améliorer ça ?
             print("Foreign keys not dropped")
 
     def create_tables(self):
@@ -47,21 +55,8 @@ class DB_Creator:
                         description VARCHAR(100) NOT NULL,
                         brand VARCHAR(30) UNIQUE NOT NULL,
                         url VARCHAR(150) NOT NULL,
-                        store_id SMALLINT UNSIGNED,
                         nutriscore CHAR(1) NOT NULL,
-                        ingredients VARCHAR(500),
-                        energy_100g VARCHAR(5),
-                        allergens VARCHAR(300),
-                        traces VARCHAR(200),
-                        additives VARCHAR(300),
-                        labels VARCHAR(150),
                         PRIMARY KEY (product_id))''')
-
-        database.query('DROP TABLE IF EXISTS Store')
-        database.query('''CREATE TABLE Store (
-                        store_id SMALLINT UNSIGNED AUTO_INCREMENT NOT NULL,
-                        name VARCHAR(50) UNIQUE NOT NULL,
-                        PRIMARY KEY (store_id))''')
 
         database.query('DROP TABLE IF EXISTS Categorie')
         database.query('''CREATE TABLE Categorie (
@@ -75,38 +70,60 @@ class DB_Creator:
                         categorie_id SMALLINT UNSIGNED NOT NULL,
                         PRIMARY KEY (product_id, categorie_id))''')
 
+        database.query('DROP TABLE IF EXISTS Store')
+        database.query('''CREATE TABLE Store (
+                        store_id SMALLINT UNSIGNED AUTO_INCREMENT NOT NULL,
+                        name VARCHAR(50) UNIQUE NOT NULL,
+                        PRIMARY KEY (store_id))''')
+
+        database.query('DROP TABLE IF EXISTS Product_Store')
+        database.query('''CREATE TABLE Product_Store (
+                        product_id INT UNSIGNED NOT NULL,
+                        store_id SMALLINT UNSIGNED NOT NULL,
+                        PRIMARY KEY (product_id, store_id))''')
+
         database.query('''CREATE TABLE IF NOT EXISTS History (
                         history_id INT UNSIGNED AUTO_INCREMENT NOT NULL,
-                        request_date DATETIME,
-                        unhealthy_product VARCHAR(100),
-                        healthy_product VARCHAR(100),
-                        description VARCHAR(100),
-                        store VARCHAR(50),
-                        url VARCHAR(150),
+                        request_date DATETIME NOT NULL,
+                        unhealthy_product VARCHAR(100) NOT NULL,
+                        healthy_product VARCHAR(100) NOT NULL,
+                        description VARCHAR(100) NOT NULL,
+                        store VARCHAR(50) NOT NULL,
+                        url VARCHAR(150) NOT NULL,
                         PRIMARY KEY (history_id))''')
 
     def create_foreign_keys(self):
         """ Manages foreign keys creation """
-
         try:
-            database.query('''ALTER TABLE Product ADD CONSTRAINT store_product_fk
-            FOREIGN KEY (store_id)
-            REFERENCES Store (store_id)
-            ON DELETE NO ACTION
-            ON UPDATE NO ACTION''')
+            database.query('''ALTER TABLE Product_Categorie
+                ADD CONSTRAINT product_product_categorie_fk
+                FOREIGN KEY (product_id)
+                REFERENCES Product (product_id)
+                ON DELETE NO ACTION
+                ON UPDATE NO ACTION''')
 
-            database.query('''ALTER TABLE Product_Categorie ADD CONSTRAINT product_product_categorie_fk
-            FOREIGN KEY (product_id)
-            REFERENCES Product (product_id)
-            ON DELETE NO ACTION
-            ON UPDATE NO ACTION''')
+            database.query('''ALTER TABLE Product_Categorie
+                ADD CONSTRAINT categorie_product_categorie_fk
+                FOREIGN KEY (categorie_id)
+                REFERENCES Categorie (categorie_id)
+                ON DELETE NO ACTION
+                ON UPDATE NO ACTION''')
 
-            database.query('''ALTER TABLE Product_Categorie ADD CONSTRAINT categorie_product_categorie_fk
-            FOREIGN KEY (categorie_id)
-            REFERENCES Categorie (categorie_id)
-            ON DELETE NO ACTION
-            ON UPDATE NO ACTION''')
-        except:
+            database.query('''ALTER TABLE Product_Store
+                ADD CONSTRAINT product_product_store_fk
+                FOREIGN KEY (product_id)
+                REFERENCES Product (product_id)
+                ON DELETE NO ACTION
+                ON UPDATE NO ACTION''')
+
+            database.query('''ALTER TABLE Product_Store
+                ADD CONSTRAINT store_product_store_fk
+                FOREIGN KEY (store_id)
+                REFERENCES Store (store_id)
+                ON DELETE NO ACTION
+                ON UPDATE NO ACTION''')
+
+        except:  # Comment améliorer ça ?
             print("Foreign keys not added")
 
 
