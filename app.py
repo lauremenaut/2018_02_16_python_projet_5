@@ -15,9 +15,27 @@ from config import database, tag_categories
 
 
 class App:
-    """ Sets App class """
+    """ Sets App class.
+
+    Consists of 6 methods :
+        - __init__()
+        - choose_categorie()
+        - choose_unhealthy_product()
+        - get_healthy_product()
+        - save_result()
+        - get_saved_result()
+
+    """
     def __init__(self, update):
-        """ App constructor """
+        """ App constructor.
+
+        Updates local database if required ('update' argument parsed).
+        Allows user to choose between :
+        - Looking for a new substitution
+        - Retrieving old substitutions
+        - Quit
+
+        """
         if update:
             DB_Creator()
             DB_Updater()
@@ -43,10 +61,12 @@ aliment''')
                 continue
             else:
                 if starting_choice == 1:
-                    self.choose_categorie()
-                    self.choose_unhealthy_product()
-                    self.get_healthy_product()
-                    self.save_result()
+                    categorie = self.choose_categorie()
+                    unhealthy_product = \
+                        self.choose_unhealthy_product(categorie)
+                    healthy_product = \
+                        self.get_healthy_product(unhealthy_product, categorie)
+                    self.save_result(unhealthy_product, healthy_product)
                 elif starting_choice == 2:
                     self.get_saved_results()
                 elif starting_choice == 3:
@@ -54,15 +74,15 @@ aliment''')
                     carry_on = False
 
     def choose_categorie(self):
-        """ Manages categorie selection """
-        print("\nVeuillez saisir le numéro d'une categorie :\n")
+        """ Displays a list of indexed categories and returns the chosen
+        one. """
+        print("\nVeuillez saisir le numéro de la categorie de votre choix :\n")
         for categorie in tag_categories:
             position = tag_categories.index(categorie) + 1
             print(f"{position} - {categorie}")
 
         try:
             categorie_choice = int(input("\n"))
-            self.selected_categorie = tag_categories[categorie_choice - 1]
         except ValueError:
             print("Saisie invalide")
             self.choose_categorie()
@@ -70,8 +90,12 @@ aliment''')
             print("Saisie invalide")
             self.choose_categorie()
 
-    def choose_unhealthy_product(self):
-        """ Manages product selection """
+        selected_categorie = tag_categories[categorie_choice - 1]
+        return selected_categorie  # Est-ce mieux de mettre des 'return' ou des 'self' ??
+
+    def choose_unhealthy_product(self, categorie):
+        """ Retrieves unhealthy products from chosen categorie in local
+        database, displays 10 of them and returns the chosen one. """
         unhealthy_products = \
             database.query('''SELECT Product.name
                            FROM Product
@@ -83,10 +107,10 @@ aliment''')
                            WHERE Categorie.name = :selected_categorie
                            AND (Product.nutriscore = "e" OR \
                                Product.nutriscore = "d")''',
-                           selected_categorie=self.selected_categorie)
+                           selected_categorie=categorie)
 
         print(f"\nVeuillez maintenant saisir le numéro d'un produit de la \
-categorie {self.selected_categorie} :\n")
+categorie {categorie} :\n")
 
         # Comment accéder au nombre de produits ? L'objet "unhealthy_products"
         # n'a pas de longueur ...
@@ -100,8 +124,6 @@ categorie {self.selected_categorie} :\n")
 
         try:
             unhealthy_product_choice = int(input("\n"))
-            self.selected_unhealthy_product = \
-                unhealthy_products[unhealthy_product_choice - 1]["name"]
         except ValueError:
             print("Saisie invalide")
             self.choose_unhealthy_product()
@@ -109,17 +131,25 @@ categorie {self.selected_categorie} :\n")
             print("Saisie invalide")
             self.choose_unhealthy_product()
 
-    def get_healthy_product(self):
-        """ Returns an healthy product and its details """
+        selected_unhealthy_product = \
+            unhealthy_products[unhealthy_product_choice - 1]["name"]
+        return selected_unhealthy_product
 
+    def get_healthy_product(self, unhealthy_product, categorie):
+        """ Returns the best matching healthy product and its
+        information """
+
+        # Retrieves id of categories to which belongs the chosen
+        # unhealthy product
         unhealthy_product_categories_ids = \
             database.query('''SELECT Product_Categorie.categorie_id
                            FROM Product_Categorie
                            JOIN Product
                            ON Product.product_id = Product_Categorie.product_id
                            WHERE Product.name = :name''',
-                           name=self.selected_unhealthy_product)
+                           name=unhealthy_product)
 
+        #  Je convertis l'objet en liste en attendant de trouver comment accéder à sa longueur ...
         unhealthy_product_categories_ids_list = []
 
         try:
@@ -129,10 +159,13 @@ categorie {self.selected_categorie} :\n")
         except IndexError:
             pass
 
-        print(f'''\n\n\nListe des categories_ids pour \
-{self.selected_unhealthy_product} : {unhealthy_product_categories_ids_list}\n''')  # A supprimer
+        print("\n\n\n******************************************************")  # A supprimer
+        print(f'''\nListe des categories_ids pour \
+{unhealthy_product} : {unhealthy_product_categories_ids_list}\n''')  # A supprimer
 
-        self.healthy_products = \
+        # Retrieves products from chosen categorie which nutriscore is
+        # "a" or "b"
+        healthy_products = \
             database.query('''SELECT Product.product_id,
                                      Product.name,
                                      Product.description,
@@ -145,13 +178,16 @@ categorie {self.selected_categorie} :\n")
                                Product_Categorie.categorie_id
                            WHERE (Product.nutriscore = "a" OR \
                                Product.nutriscore = "b")
-                           AND Categorie.name = :selected_categorie''',
-                           selected_categorie=self.selected_categorie)
+                           AND Categorie.name = :categorie''',
+                           categorie=categorie)
 
+        # Dictionnary {name of healthy product : number of categories it
+        # shares with chosen unhealthy_product}
         healthy_products_dict = {}
 
         try:
-            for i in range(10):
+            for i in range(20):
+                # For each healthy product, retrieves categories ids
                 healthy_product_categories_ids = \
                     database.query('''SELECT Product_Categorie.categorie_id
                                    FROM Product_Categorie
@@ -159,8 +195,10 @@ categorie {self.selected_categorie} :\n")
                                    ON Product.product_id = \
                                        Product_Categorie.product_id
                                    WHERE Product.name = :name''',
-                                   name=self.healthy_products[i]["name"])
+                                   name=healthy_products[i]["name"])
 
+                # For each healthy product, makes a list of categories
+                # it shares with chosen unhealthy product
                 shared_categories = []
                 try:
                     for j in range(10):
@@ -172,48 +210,84 @@ categorie {self.selected_categorie} :\n")
                 except IndexError:
                     pass
 
-                healthy_products_dict[self.healthy_products[i]["name"]] = \
+                healthy_products_dict[healthy_products[i]["name"]] = \
                     len(shared_categories)
-                print(f'''Categories_ids en commun avec \
-{self.selected_unhealthy_product} pour {self.healthy_products[i]['name']} : \
-{shared_categories}''')  # A supprimer
+
+                print(f'''id des categories en commun avec {unhealthy_product}\
+ pour {healthy_products[i]['name']} : {shared_categories}''')  # A supprimer
 
         except IndexError:
             pass
 
-        best_healthy_products = []
-
+        # Gets the maximum number of categories that an healthy product
+        # shares with the chosen unhealthy product
         maximum = max(healthy_products_dict.values())
 
+        # List of healthy products which share the maximum number of
+        # categories with the chosen unhealthy product
+        best_matches = []
+
         for name, number_of_shared_categories in healthy_products_dict.items():
+            # Adds an healthy product to 'best_matches' list if it
+            # shares the maximum number of categories with the chosen
+            # unhealthy product
             if number_of_shared_categories == maximum:
-                best_healthy_products.append(name)
+                best_matches.append(name)
 
-        print(f"\nNombre de catégories en commun maximum = {maximum}")  # A supprimer
-        print(f'''\nProduits sains qui ont le maximum de catégories en commun \
-: {best_healthy_products} \n\n\n''')  # A supprimer
+        print(f"\nNombre maximum de catégories en commun = {maximum}")  # A supprimer
+        print(f'''\nProduits sains qui partagent {maximum} catégories avec\
+ {unhealthy_product} : ''')  # A supprimer
+        for match in best_matches:
+            print(f'- {match}')
+        print("\n******************************************************\n\n\n")  # A supprimer
 
-        self.healthy_product = \
+        # List of best matching healthy products which nutriscore is "a"
+        healthiest_matches = []
+
+        for match in best_matches:
+            healthy_match = database.query('''SELECT name, nutriscore
+                                           FROM Product
+                                           WHERE name = :name
+                                           AND nutriscore = "a"''',
+                                           name=match)
+            try:
+                healthiest_matches.append(healthy_match[0]["name"])
+            except IndexError:
+                pass
+
+        # 'healthiest_match' comes from "a" products list
+        # ('healthiest_matches') if not empty, else from "b" (and "a")
+        # products list ('best_matches')
+        try:
+            healthiest_match = healthiest_matches[0]
+        except IndexError:
+            healthiest_match = best_matches[0]
+
+        # Retrieves information for the product proposed to the user
+        # ('healthiest_match')
+        proposed_product = \
             database.query('''SELECT Product.product_id,
                                      Product.name,
                                      Product.description,
                                      Product.url
                            FROM Product
                            WHERE Product.name = :name''',
-                           name=best_healthy_products[0])
+                           name=healthiest_match)
 
+        # Retrieves id of stores selling the proposed product
         store_ids = database.query('''SELECT Product_Store.store_id
                                    FROM Product_Store
                                    JOIN Product
                                    ON Product.product_id = \
                                        Product_Store.product_id
                                    WHERE Product.name = :name''',
-                                   name=self.healthy_products[0]["name"])
+                                   name=healthiest_match)
 
+        # List of stores selling the proposed product
         self.stores = []
 
         try:  # Pas terrible ce try/except ... comment faire mieux ??
-            for i in range(10):  # On ajoute maximum 10 magasins à la liste 'stores'
+            for i in range(10):
                 store = database.query('''SELECT Store.name
                                        FROM Store
                                        WHERE Store.store_id = :store_id''',
@@ -222,23 +296,21 @@ categorie {self.selected_categorie} :\n")
         except IndexError:
             pass
 
-        print(f'''\nVoici une alternative plus saine à \
-'{self.selected_unhealthy_product}' :\n''')
-
-        print(f"Nom : {(self.healthy_product[0]['name']).capitalize()}")
-        # Pas de majuscules, malgré le capitalize, pourquoi ?!
-        print(f'''Description : {(self.healthy_product[0]['description']).
-            capitalize()}''')
+        print(f"\nVoici une alternative plus saine à '{unhealthy_product}' :")
+        print(f"\nNom : {(proposed_product[0]['name'])}")
+        print(f"Description : {proposed_product[0]['description']}")
         print("Disponible chez :")
 
         for store in self.stores:
-            print((store).capitalize())
-            # Comment imprimer les 3 magasins sur la même ligne ?
+            print(store)
+            # Comment écrire les 3 magasins sur la même ligne ?
 
-        print(f"{self.healthy_product[0]['url']}")
+        print(f"{proposed_product[0]['url']}")
 
-    def save_result(self):
-        """ Manages result backup """
+        return proposed_product
+
+    def save_result(self, unhealthy_product, healthy_product):
+        """ Allows the user to save the result of its query """
         print("\nSouhaitez-vous enregistrer ce résultat pour le retrouver plus\
  tard ?\n")
         print("1 - Oui, je sauvegarde")
@@ -255,6 +327,7 @@ categorie {self.selected_categorie} :\n")
 saisir 1 ou 2.''')
             self.save_result()
         else:
+            # Relevant information is added in History table
             if backup_choice == 1:
                 database.query('''INSERT INTO History
                                VALUES (NULL,
@@ -264,25 +337,22 @@ saisir 1 ou 2.''')
                                        :description,
                                        :store,
                                        :url)''',
-                               unhealthy_product=self.
-                               selected_unhealthy_product,
-                               healthy_product=self.
-                               healthy_product[0]["name"],
-                               description=self.
-                               healthy_product[0]["description"],
+                               unhealthy_product=unhealthy_product,
+                               healthy_product=healthy_product[0]["name"],
+                               description=healthy_product[0]["description"],
                                store=self.stores[0],
-                               url=self.healthy_product[0]["url"])
+                               url=healthy_product[0]["url"])
                 # Seulement 1 magasin enregistré pour le moment ...
                 print("\nRésultat sauvegardé !")
             elif backup_choice == 2:
                 pass
 
     def get_saved_results(self):
-        """ Manages """
+        """ Allows the user to retrieve old queries """
         saved_results = database.query("""SELECT *
                                        FROM History
-                                       ORDER BY request_date
-                                       LIMIT 10""")
+                                       ORDER BY request_date DESC
+                                       LIMIT 5""")
 
         print("\nVoici les résultats de vos dernières recherches :")
 
