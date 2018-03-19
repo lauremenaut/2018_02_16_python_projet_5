@@ -3,7 +3,7 @@
 
 """ Sets DB_Updater class.
 
-DB_Updater class fills "healthier_food" database, connecting with Open
+DB_Updater class fills 'healthier_food' database, connecting with Open
 Food Facts API.
 
 """
@@ -13,17 +13,31 @@ from requests import get
 from config import database, db_name, nutrition_grades, tag_categories
 
 
-class DB_Updater:
-    """ Sets DB_Updater class """
-    def __init__(self):
-        """ DB_Updater constructor """
-        for self.nutrition_grade in nutrition_grades:
-            for self.categorie in tag_categories:
-                self.products = self.get_products()
-                self.fill_db(self.products)
+class DB_Updater:  # 'Old-style class defined' ?? - 'Invalid class name' ??
+    """ Sets DB_Updater class.
 
-    def get_products(self):
-        """ Gets products from Open Food Facts API. """
+    Consists of 2 methods :
+        - __init__()
+        - get_products()
+        - fill_db()
+
+    """
+    def __init__(self):
+        """ DB_Updater constructor.
+
+        For each categorie and for each nutrition grade, retrieves
+        corresponding products from Open Food Facts API and adds them to
+        local database.
+
+        """
+        for nutrition_grade in nutrition_grades:
+            for categorie in tag_categories:
+                products = self.get_products(categorie, nutrition_grade)
+                self.fill_db(products)
+
+    def get_products(self, categorie, nutrition_grade):  # 'Method could be a function (no-self-used)' ??
+        """ Gets products from Open Food Facts API following given
+        criteria. """
         criteria = {
             "action": "process",
             "json": 1,
@@ -32,56 +46,70 @@ class DB_Updater:
             "page": 1,
             "tagtype_0": "categories",
             "tag_contains_0": "contains",
-            "tag_0": self.categorie,
+            "tag_0": categorie,
             "tagtype_1": "nutrition_grades",
             "tag_contains_1": "contains",
-            "tag_1": self.nutrition_grade
+            "tag_1": nutrition_grade
             }
 
         response = get('https://fr.openfoodfacts.org/cgi/search.pl',
                        params=criteria)
         data = response.json()
+
+        # 'products' is a list of dictionnaries
         products = data["products"]
-        # 'products' est une liste de dictionnaires correspondant aux
-        # produits de la page 1
         return products
 
-    def fill_db(self, products):
+    def fill_db(self, products):  # 'Method could be a function (no-self-used)' ??
         """ Contains SQL requests to fill database """
         # database.query('SET NAMES "utf8"')
         # database.query(f'USE {db_name}')
+
+        # For each product, checks if required data is available or not
         for product in products:
             try:
-                categories = product["categories"].split(",")
-                name = product["product_name"]
-                description = product["generic_name"]
+                categories_to_strip = (product["categories"]).split(",")
+                categories = []
+                for categorie in categories_to_strip:
+                    categories.append(categorie.strip().capitalize())
+                name = product["product_name"].strip().capitalize()
+                description = product["generic_name"].capitalize()
                 brands = (product["brands"]).split(",")
-                brand = brands[0]
+                brand = brands[0].capitalize()
                 url = product["url"]
-                stores = (product["stores"]).split(",")
-                nutrition_grade = product["nutrition_grades"]
+                stores_to_strip = (product["stores"]).split(",")
+                stores = []
+                for store in stores_to_strip:
+                    stores.append(store.strip().capitalize())
+                nutrition_grade = product["nutrition_grades"].lower()
 
             except KeyError:
                 print("Missing data")
 
-            if all([categories, name, description, brand, url, stores,
+            # If required data is available, product is added to local
+            # database
+            if all([categories[0], name, description, brand, url, stores[0],
                     nutrition_grade]):
-                database.query("""INSERT IGNORE INTO Product (name,
+                # Product information is added in Product table
+                database.query('''INSERT IGNORE INTO Product (name,
                                                               description,
                                                               brand,
                                                               url,
                                                               nutriscore)
-                                VALUES (:name,
-                                        :description,
-                                        :brand,
-                                        :url,
-                                        :nutrition_grade)""",
+                               VALUES (:name,
+                                       :description,
+                                       :brand,
+                                       :url,
+                                       :nutrition_grade)''',
                                name=name,
                                description=description,
                                brand=brand,
                                url=url,
                                nutrition_grade=nutrition_grade)
 
+                # Categorie information is added in Categorie and
+                # Product_Categorie tables (Unique Key on categorie name
+                # column prevents duplicate entry)
                 for categorie in categories:
                     database.query('''INSERT IGNORE INTO Categorie (name)
                                    VALUES (:categorie)''',
@@ -95,6 +123,9 @@ class DB_Updater:
                                             WHERE name = :categorie))''',
                                    name=name, categorie=categorie)
 
+                # Store information is added in Store and
+                # Product_Store tables (Unique Key on store name column
+                # prevents duplicate entry)
                 for store in stores:
                     database.query('''INSERT IGNORE INTO Store (name)
                                    VALUES (:store)''', store=store)
