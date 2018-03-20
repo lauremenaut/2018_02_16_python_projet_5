@@ -60,7 +60,7 @@ class DB_Creator:
         which content is not dropped """
         database.query('DROP TABLE IF EXISTS Product')
         database.query('''CREATE TABLE Product (
-                       product_id INT UNSIGNED AUTO_INCREMENT NOT NULL,
+                       product_id BIGINT UNSIGNED NOT NULL,
                        name VARCHAR(100) UNIQUE NOT NULL,
                        description VARCHAR(100) NOT NULL,
                        brand VARCHAR(30) UNIQUE NOT NULL,
@@ -76,7 +76,7 @@ class DB_Creator:
 
         database.query('DROP TABLE IF EXISTS Product_Categorie')
         database.query('''CREATE TABLE Product_Categorie (
-                       product_id INT UNSIGNED NOT NULL,
+                       product_id BIGINT UNSIGNED NOT NULL,
                        categorie_id SMALLINT UNSIGNED NOT NULL,
                        PRIMARY KEY (product_id, categorie_id))''')
 
@@ -88,7 +88,7 @@ class DB_Creator:
 
         database.query('DROP TABLE IF EXISTS Product_Store')
         database.query('''CREATE TABLE Product_Store (
-                       product_id INT UNSIGNED NOT NULL,
+                       product_id BIGINT UNSIGNED NOT NULL,
                        store_id SMALLINT UNSIGNED NOT NULL,
                        PRIMARY KEY (product_id, store_id))''')
 
@@ -98,7 +98,7 @@ class DB_Creator:
                        unhealthy_product VARCHAR(100) NOT NULL,
                        healthy_product VARCHAR(100) NOT NULL,
                        description VARCHAR(100) NOT NULL,
-                       store VARCHAR(50) NOT NULL,
+                       stores VARCHAR(50) NOT NULL,
                        url VARCHAR(150) NOT NULL,
                        PRIMARY KEY (history_id))''')
 
