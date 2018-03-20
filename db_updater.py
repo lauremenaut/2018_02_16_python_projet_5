@@ -68,15 +68,16 @@ class DB_Updater:  # 'Old-style class defined' ?? - 'Invalid class name' ??
         # For each product, checks if required data is available or not
         for product in products:
             try:
-                categories_to_strip = (product["categories"]).split(",")
-                categories = []
-                for categorie in categories_to_strip:
-                    categories.append(categorie.strip().capitalize())
+                code = product["code"]
                 name = product["product_name"].strip().capitalize()
                 description = product["generic_name"].capitalize()
                 brands = (product["brands"]).split(",")
                 brand = brands[0].capitalize()
                 url = product["url"]
+                categories_to_strip = (product["categories"]).split(",")
+                categories = []
+                for categorie in categories_to_strip:
+                    categories.append(categorie.strip().capitalize())
                 stores_to_strip = (product["stores"]).split(",")
                 stores = []
                 for store in stores_to_strip:
@@ -88,19 +89,17 @@ class DB_Updater:  # 'Old-style class defined' ?? - 'Invalid class name' ??
 
             # If required data is available, product is added to local
             # database
-            if all([categories[0], name, description, brand, url, stores[0],
-                    nutrition_grade]):
+            if all([code, name, description, brand, url,
+                    nutrition_grade, categories[0], stores[0]]):
                 # Product information is added in Product table
-                database.query('''INSERT IGNORE INTO Product (name,
-                                                              description,
-                                                              brand,
-                                                              url,
-                                                              nutriscore)
-                               VALUES (:name,
+                database.query('''INSERT IGNORE INTO Product
+                               VALUES (:code,
+                                       :name,
                                        :description,
                                        :brand,
                                        :url,
                                        :nutrition_grade)''',
+                               code=code,
                                name=name,
                                description=description,
                                brand=brand,
