@@ -141,7 +141,7 @@ categorie {categorie} :\n")
 
         # Retrieves id of categories to which belongs the chosen
         # unhealthy product
-        unhealthy_product_categories_ids = \
+        unhealthy_product_categories_id = \
             database.query('''SELECT Product_Categorie.categorie_id
                            FROM Product_Categorie
                            JOIN Product
@@ -150,18 +150,18 @@ categorie {categorie} :\n")
                            name=unhealthy_product)
 
         #  Je convertis l'objet en liste en attendant de trouver comment accéder à sa longueur ...
-        unhealthy_product_categories_ids_list = []
+        unhealthy_product_categories_id_list = []
 
         try:
             for i in range(10):
-                unhealthy_product_categories_ids_list. \
-                    append(unhealthy_product_categories_ids[i]["categorie_id"])
+                unhealthy_product_categories_id_list. \
+                    append(unhealthy_product_categories_id[i]["categorie_id"])
         except IndexError:
             pass
 
         print("\n\n\n******************************************************")  # A supprimer
-        print(f'''\nListe des categories_ids pour \
-{unhealthy_product} : {unhealthy_product_categories_ids_list}\n''')  # A supprimer
+        print(f'''\nListe des id des categories pour \
+{unhealthy_product} : {unhealthy_product_categories_id_list}\n''')  # A supprimer
 
         # Retrieves products from chosen categorie which nutriscore is
         # "a" or "b"
@@ -203,7 +203,7 @@ categorie {categorie} :\n")
                 try:
                     for j in range(10):
                         if healthy_product_categories_ids[j]["categorie_id"] \
-                                in unhealthy_product_categories_ids_list:
+                                in unhealthy_product_categories_id_list:
                             shared_categories. \
                                 append(healthy_product_categories_ids[j]
                                        ["categorie_id"])
@@ -296,14 +296,12 @@ categorie {categorie} :\n")
         except IndexError:
             pass
 
+            self.stores_str = ', '.join(self.stores)
+
         print(f"\nVoici une alternative plus saine à '{unhealthy_product}' :")
         print(f"\nNom : {(proposed_product[0]['name'])}")
         print(f"Description : {proposed_product[0]['description']}")
-        print("Disponible chez :")
-
-        for store in self.stores:
-            print(store)
-            # Comment écrire les 3 magasins sur la même ligne ?
+        print(f"Disponible chez : {self.stores_str}")
 
         print(f"{proposed_product[0]['url']}")
 
@@ -335,14 +333,14 @@ saisir 1 ou 2.''')
                                        :unhealthy_product,
                                        :healthy_product,
                                        :description,
-                                       :store,
+                                       :stores,
                                        :url)''',
                                unhealthy_product=unhealthy_product,
                                healthy_product=healthy_product[0]["name"],
                                description=healthy_product[0]["description"],
-                               store=self.stores[0],
+                               stores=self.stores_str,
                                url=healthy_product[0]["url"])
-                # Seulement 1 magasin enregistré pour le moment ...
+
                 print("\nRésultat sauvegardé !")
             elif backup_choice == 2:
                 pass
@@ -361,7 +359,7 @@ saisir 1 ou 2.''')
             print(f"Produit substitué : {saved_result['unhealthy_product']}")
             print(f"Produit proposé : {saved_result['healthy_product']}")
             print(f"Description : {saved_result['description']}")
-            print(f"Disponible chez : {saved_result['store']}")
+            print(f"Disponible chez : {saved_result['stores']}")
             print(f"{saved_result['url']}")
 
 
