@@ -1,9 +1,9 @@
 #! /usr/bin/env phyton3
 # coding: utf-8
 
-""" Sets DB_Updater class.
+""" Sets DatabaseFiller class.
 
-DB_Updater class fills 'healthier_food' database, connecting with Open
+DatabaseFiller class fills 'healthier_food' database, connecting with Open
 Food Facts API.
 
 """
@@ -13,17 +13,17 @@ from requests import get
 from config import database, db_name, nutrition_grades, tag_categories
 
 
-class DB_Updater:  # 'Old-style class defined' ?? - 'Invalid class name' ??
-    """ Sets DB_Updater class.
+class DatabaseFiller:  # 'Old-style class defined' ??
+    """ Sets DatabaseFiller class.
 
-    Consists of 2 methods :
+    Consists of 3 methods :
         - __init__()
         - get_products()
         - fill_db()
 
     """
     def __init__(self):
-        """ DB_Updater constructor.
+        """ DatabaseFiller constructor.
 
         For each categorie and for each nutrition grade, retrieves
         corresponding products from Open Food Facts API and adds them to
@@ -42,7 +42,7 @@ class DB_Updater:  # 'Old-style class defined' ?? - 'Invalid class name' ??
             "action": "process",
             "json": 1,
             "countries": "France",
-            "page_size": 100,
+            "page_size": 20,
             "page": 1,
             "tagtype_0": "categories",
             "tag_contains_0": "contains",
@@ -92,6 +92,7 @@ class DB_Updater:  # 'Old-style class defined' ?? - 'Invalid class name' ??
             if all([code, name, description, brand, url,
                     nutrition_grade, categories[0], stores[0]]):
                 # Product information is added in Product table
+                # 'code' is saved in 'product_id' column
                 database.query('''INSERT IGNORE INTO Product
                                VALUES (:code,
                                        :name,
@@ -139,7 +140,7 @@ class DB_Updater:  # 'Old-style class defined' ?? - 'Invalid class name' ??
 
 
 def main():
-    DB_Updater()
+    DatabaseFiller()
 
 
 if __name__ == "__main__":
