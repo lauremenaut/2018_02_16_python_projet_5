@@ -1,17 +1,17 @@
 #! /usr/bin/env phyton3
 # coding: utf-8
 
-""" Sets DB_Creator class.
+""" Sets DatabaseCreator class.
 
-DB_Creator class creates local database 'healthier_food'.
+DatabaseCreator class creates local database 'healthier_food'.
 
 """
 
 from config import database, db_name
 
 
-class DB_Creator:
-    """ Sets DB_Creator class.
+class DatabaseCreator:
+    """ Sets DatabaseCreator class.
 
     Class consists of 5 methods :
         - __init__()
@@ -22,7 +22,7 @@ class DB_Creator:
 
     """
     def __init__(self):
-        """ DB_Creator constructor """
+        """ DatabaseCreator constructor """
         self.create_database()
         self.drop_foreign_keys()
         self.create_tables()
@@ -134,7 +134,7 @@ class DB_Creator:
 
 
 def main():
-    DB_Creator()
+    DatabaseCreator()
 
 
 if __name__ == "__main__":
