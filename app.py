@@ -9,8 +9,8 @@ App class manages interactions with the user.
 
 import argparse
 
-from db_creator import DB_Creator
-from db_updater import DB_Updater
+from database_creator import DatabaseCreator
+from database_filler import DatabaseFiller
 from config import database, tag_categories
 
 
@@ -37,8 +37,8 @@ class App:
 
         """
         if update:
-            DB_Creator()
-            DB_Updater()
+            DatabaseCreator()
+            DatabaseFiller()
         # database.query('USE healthier_food')
         carry_on = True
 
@@ -296,7 +296,7 @@ categorie {categorie} :\n")
         except IndexError:
             pass
 
-            self.stores_str = ', '.join(self.stores)
+        self.stores_str = ', '.join(self.stores)
 
         print(f"\nVoici une alternative plus saine à '{unhealthy_product}' :")
         print(f"\nNom : {(proposed_product[0]['name'])}")
