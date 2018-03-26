@@ -9,15 +9,20 @@ App class manages interactions with the user.
 
 import argparse
 
+from config import database, tag_categories
 from database_creator import DatabaseCreator
 from database_filler import DatabaseFiller
-from config import database, tag_categories
+from product import Product
+from product_categorie import Product_Categorie
+from product_store import Product_Store
+from store import Store
+from history import History
 
 
 class App:
     """ Sets App class.
 
-    Consists of 6 methods :
+    Consists of ... methods :
         - __init__()
         - choose_categorie()
         - choose_unhealthy_product()
@@ -40,24 +45,23 @@ class App:
             DatabaseCreator()
             DatabaseFiller()
         # database.query('USE healthier_food')
-        carry_on = True
+        carry_on_1 = True
 
-        while carry_on:
-            print("\nQue souhaitez-vous faire ?")
+        while carry_on_1:
+            print('\nQue souhaitez-vous faire ?')
             print('''\n1 - Chercher une alternative plus saine à un nouvel \
 aliment''')
-            print("2 - Retrouver vos substitutions enregistrées")
-            print("3 - Quitter l'application")
+            print('2 - Retrouver vos substitutions enregistrées')
+            print('3 - Quitter l\'application')
 
             try:
-                starting_choice = int(input("\n"))
+                starting_choice = int(input('\n'))
                 assert starting_choice in [1, 2, 3]
             except ValueError:
-                print("\nVeuillez saisir un nombre : 1, 2 ou 3.")
+                print('\nVeuillez saisir un nombre : 1, 2 ou 3.')
                 continue
             except AssertionError:
-                print("\n{} est un choix invalide. Veuillez saisir 1, 2 ou 3."
-                      .format(starting_choice))
+                print(f'\n{starting_choice} est un choix invalide. Veuillez saisir 1, 2 ou 3.')
                 continue
             else:
                 if starting_choice == 1:
@@ -70,69 +74,62 @@ aliment''')
                 elif starting_choice == 2:
                     self.get_saved_results()
                 elif starting_choice == 3:
-                    print("\nMerci de votre visite !\n")
-                    carry_on = False
+                    print('\nMerci de votre visite !\n')
+                    carry_on_1 = False
 
     def choose_categorie(self):
         """ Displays a list of indexed categories and returns the chosen
         one. """
-        print("\nVeuillez saisir le numéro de la categorie de votre choix :\n")
-        for categorie in tag_categories:
-            position = tag_categories.index(categorie) + 1
-            print(f"{position} - {categorie}")
 
-        try:
-            categorie_choice = int(input("\n"))
-        except ValueError:
-            print("Saisie invalide")
-            self.choose_categorie()
-        except IndexError:
-            print("Saisie invalide")
-            self.choose_categorie()
+        carry_on_2 = True
+
+        while carry_on_2:
+            print('\nVeuillez saisir le numéro correspondant à la categorie de votre choix :\n')
+            for categorie in tag_categories:
+                position = tag_categories.index(categorie) + 1
+                print(f'{position} - {categorie}')
+
+            try:
+                categorie_choice = int(input('\n'))
+                assert categorie_choice in range(1, len(tag_categories) + 1)
+                carry_on_2 = False
+            except ValueError:
+                print('Saisie invalide.')
+                continue
+            except AssertionError:
+                print(f'\n{categorie_choice} est un choix invalide.')
+                continue
 
         selected_categorie = tag_categories[categorie_choice - 1]
-        return selected_categorie  # Est-ce mieux de mettre des 'return' ou des 'self' ??
+        return selected_categorie
 
     def choose_unhealthy_product(self, categorie):
         """ Retrieves unhealthy products from chosen categorie in local
         database, displays 10 of them and returns the chosen one. """
-        unhealthy_products = \
-            database.query('''SELECT Product.name
-                           FROM Product
-                           JOIN Product_Categorie
-                           ON Product.product_id = Product_Categorie.product_id
-                           JOIN Categorie
-                           ON Categorie.categorie_id = \
-                               Product_Categorie.categorie_id
-                           WHERE Categorie.name = :selected_categorie
-                           AND (Product.nutriscore = "e" OR \
-                               Product.nutriscore = "d")''',
-                           selected_categorie=categorie)
+        unhealthy_products = Product.select_unhealthy_products_names(self, categorie)
 
-        print(f"\nVeuillez maintenant saisir le numéro d'un produit de la \
-categorie {categorie} :\n")
+        carry_on_3 = True
 
-        # Comment accéder au nombre de produits ? L'objet "unhealthy_products"
-        # n'a pas de longueur ...
+        while carry_on_3:
+            print(f'''\nVeuillez saisir le numéro d'un produit de la categorie \
+{categorie} :\n''')
 
-        for i in range(10):
+            for i in range(len(unhealthy_products.all())):
+                print(f'{i + 1} - {unhealthy_products[i]["name"].capitalize()}')
+
             try:
-                print(f'''{i + 1} - \
-{unhealthy_products[i]['name'].capitalize()}''')
-            except IndexError:
-                pass
-
-        try:
-            unhealthy_product_choice = int(input("\n"))
-        except ValueError:
-            print("Saisie invalide")
-            self.choose_unhealthy_product()
-        except IndexError:
-            print("Saisie invalide")
-            self.choose_unhealthy_product()
+                unhealthy_product_choice = int(input('\n'))
+                assert unhealthy_product_choice in range(1, len(unhealthy_products.all()) + 1)
+                carry_on_3 = False
+            except ValueError:
+                print('Saisie invalide')
+                continue
+            except AssertionError:
+                print(f'\n{unhealthy_product_choice} est un choix invalide.')
+                continue
 
         selected_unhealthy_product = \
-            unhealthy_products[unhealthy_product_choice - 1]["name"]
+            unhealthy_products[unhealthy_product_choice - 1]["name"].capitalize()
         return selected_unhealthy_product
 
     def get_healthy_product(self, unhealthy_product, categorie):
@@ -141,83 +138,46 @@ categorie {categorie} :\n")
 
         # Retrieves id of categories to which belongs the chosen
         # unhealthy product
-        unhealthy_product_categories_id = \
-            database.query('''SELECT Product_Categorie.categorie_id
-                           FROM Product_Categorie
-                           JOIN Product
-                           ON Product.product_id = Product_Categorie.product_id
-                           WHERE Product.name = :name''',
-                           name=unhealthy_product)
+        unhealthy_product_categories_id = Product_Categorie.select_unhealthy_product_categories_id(self, unhealthy_product)
 
-        #  Je convertis l'objet en liste en attendant de trouver comment accéder à sa longueur ...
         unhealthy_product_categories_id_list = []
+        for i in range(len(unhealthy_product_categories_id.all())):
+            unhealthy_product_categories_id_list.append(unhealthy_product_categories_id[i]['categorie_id'])
 
-        try:
-            for i in range(10):
-                unhealthy_product_categories_id_list. \
-                    append(unhealthy_product_categories_id[i]["categorie_id"])
-        except IndexError:
-            pass
-
-        print("\n\n\n******************************************************")  # A supprimer
+        print('\n\n\n******************************************************')  # A supprimer
         print(f'''\nListe des id des categories pour \
-{unhealthy_product} : {unhealthy_product_categories_id_list}\n''')  # A supprimer
+{unhealthy_product} : {unhealthy_product_categories_id.all()}\n''')  # A supprimer
 
-        # Retrieves products from chosen categorie which nutriscore is
+        # Retrieves products from chosen categorie which nutrition_grade is
         # "a" or "b"
-        healthy_products = \
-            database.query('''SELECT Product.product_id,
-                                     Product.name,
-                                     Product.description,
-                                     Product.url
-                           FROM Product
-                           JOIN Product_Categorie
-                           ON Product.product_id = Product_Categorie.product_id
-                           JOIN Categorie
-                           ON Categorie.categorie_id = \
-                               Product_Categorie.categorie_id
-                           WHERE (Product.nutriscore = "a" OR \
-                               Product.nutriscore = "b")
-                           AND Categorie.name = :categorie''',
-                           categorie=categorie)
+        healthy_products = Product.select_healthy_products_information(self, categorie)
 
         # Dictionnary {name of healthy product : number of categories it
         # shares with chosen unhealthy_product}
         healthy_products_dict = {}
 
-        try:
-            for i in range(20):
-                # For each healthy product, retrieves categories ids
-                healthy_product_categories_ids = \
-                    database.query('''SELECT Product_Categorie.categorie_id
-                                   FROM Product_Categorie
-                                   JOIN Product
-                                   ON Product.product_id = \
-                                       Product_Categorie.product_id
-                                   WHERE Product.name = :name''',
-                                   name=healthy_products[i]["name"])
+        for i in range(len(healthy_products.all())):
+            # For each healthy product, retrieves categories ids
+            healthy_product_categories_ids = Product_Categorie.select_healthy_product_categories_id(self, healthy_products[i]['name'])
 
-                # For each healthy product, makes a list of categories
-                # it shares with chosen unhealthy product
-                shared_categories = []
-                try:
-                    for j in range(10):
-                        if healthy_product_categories_ids[j]["categorie_id"] \
-                                in unhealthy_product_categories_id_list:
-                            shared_categories. \
-                                append(healthy_product_categories_ids[j]
-                                       ["categorie_id"])
-                except IndexError:
-                    pass
+            # For each healthy product, makes a list of categories
+            # it shares with chosen unhealthy product
+            shared_categories = []
+            try:  # Pourquoi ça ne fonctionne pas si j'enlève le Try/Except ??
+                for j in range(len(healthy_products.all())):
+                    if healthy_product_categories_ids[j]['categorie_id'] \
+                            in unhealthy_product_categories_id_list:
+                        shared_categories. \
+                            append(healthy_product_categories_ids[j]
+                                   ['categorie_id'])
+            except IndexError:
+                pass
 
-                healthy_products_dict[healthy_products[i]["name"]] = \
-                    len(shared_categories)
+            healthy_products_dict[healthy_products[i]['name']] = \
+                len(shared_categories)
 
-                print(f'''id des categories en commun avec {unhealthy_product}\
+            print(f'''id des categories en commun avec {unhealthy_product}\
  pour {healthy_products[i]['name']} : {shared_categories}''')  # A supprimer
-
-        except IndexError:
-            pass
 
         # Gets the maximum number of categories that an healthy product
         # shares with the chosen unhealthy product
@@ -234,29 +194,26 @@ categorie {categorie} :\n")
             if number_of_shared_categories == maximum:
                 best_matches.append(name)
 
-        print(f"\nNombre maximum de catégories en commun = {maximum}")  # A supprimer
+        print(f'\nNombre maximum de catégories en commun = {maximum}')  # A supprimer
         print(f'''\nProduits sains qui partagent {maximum} catégories avec\
  {unhealthy_product} : ''')  # A supprimer
         for match in best_matches:
             print(f'- {match}')
-        print("\n******************************************************\n\n\n")  # A supprimer
+        print('\n******************************************************\n\n\n')  # A supprimer
 
-        # List of best matching healthy products which nutriscore is "a"
+        # List of best matching healthy products which nutrition_grade is 'a'
         healthiest_matches = []
 
         for match in best_matches:
-            healthy_match = database.query('''SELECT name, nutriscore
-                                           FROM Product
-                                           WHERE name = :name
-                                           AND nutriscore = "a"''',
-                                           name=match)
+            healthy_match = Product.select_match_information(self, match)
+
             try:
-                healthiest_matches.append(healthy_match[0]["name"])
+                healthiest_matches.append(healthy_match[0]['name'])
             except IndexError:
                 pass
 
-        # 'healthiest_match' comes from "a" products list
-        # ('healthiest_matches') if not empty, else from "b" (and "a")
+        # 'healthiest_match' comes from 'a' products list
+        # ('healthiest_matches') if not empty, else from 'b' (and 'a')
         # products list ('best_matches')
         try:
             healthiest_match = healthiest_matches[0]
@@ -265,60 +222,41 @@ categorie {categorie} :\n")
 
         # Retrieves information for the product proposed to the user
         # ('healthiest_match')
-        proposed_product = \
-            database.query('''SELECT Product.product_id,
-                                     Product.name,
-                                     Product.description,
-                                     Product.url
-                           FROM Product
-                           WHERE Product.name = :name''',
-                           name=healthiest_match)
+        proposed_product = Product.select_healthiest_match_information(self,healthiest_match)
 
         # Retrieves id of stores selling the proposed product
-        store_ids = database.query('''SELECT Product_Store.store_id
-                                   FROM Product_Store
-                                   JOIN Product
-                                   ON Product.product_id = \
-                                       Product_Store.product_id
-                                   WHERE Product.name = :name''',
-                                   name=healthiest_match)
+        store_ids = Product_Store.select_store_ids(self, healthiest_match)
 
         # List of stores selling the proposed product
         self.stores = []
 
-        try:  # Pas terrible ce try/except ... comment faire mieux ??
-            for i in range(10):
-                store = database.query('''SELECT Store.name
-                                       FROM Store
-                                       WHERE Store.store_id = :store_id''',
-                                       store_id=store_ids[i]["store_id"])
-                self.stores.append(store[0]["name"])
-        except IndexError:
-            pass
+        for i in range(len(store_ids.all())):
+            store = Store.select_store(self, store_ids[i]['store_id'])
+            self.stores.append(store)
 
         self.stores_str = ', '.join(self.stores)
 
-        print(f"\nVoici une alternative plus saine à '{unhealthy_product}' :")
-        print(f"\nNom : {(proposed_product[0]['name'])}")
-        print(f"Description : {proposed_product[0]['description']}")
-        print(f"Disponible chez : {self.stores_str}")
+        print(f'\nVoici une alternative plus saine à "{unhealthy_product}" :')
+        print(f'\nNom : {(proposed_product[0]["name"])}')
+        print(f'Description : {proposed_product[0]["description"]}')
+        print(f'Disponible chez : {self.stores_str}')
 
-        print(f"{proposed_product[0]['url']}")
+        print(f'{proposed_product[0]["url"]}')
 
         return proposed_product
 
     def save_result(self, unhealthy_product, healthy_product):
         """ Allows the user to save the result of its query """
-        print("\nSouhaitez-vous enregistrer ce résultat pour le retrouver plus\
- tard ?\n")
-        print("1 - Oui, je sauvegarde")
-        print("2 - Non, merci")
+        print('\nSouhaitez-vous enregistrer ce résultat pour le retrouver plus\
+ tard ?\n')
+        print('1 - Oui, je sauvegarde')
+        print('2 - Non, merci')
 
         try:
-            backup_choice = int(input("\n"))
+            backup_choice = int(input('\n'))
             assert backup_choice in [1, 2]
         except ValueError:
-            print("\nVeuillez saisir un nombre : 1 ou 2.")
+            print('\nVeuillez saisir un nombre : 1 ou 2.')
             self.save_result()
         except AssertionError:
             print(f'''\n{backup_choice} est un choix invalide. Veuillez \
@@ -327,47 +265,32 @@ saisir 1 ou 2.''')
         else:
             # Relevant information is added in History table
             if backup_choice == 1:
-                database.query('''INSERT INTO History
-                               VALUES (NULL,
-                                       NOW(),
-                                       :unhealthy_product,
-                                       :healthy_product,
-                                       :description,
-                                       :stores,
-                                       :url)''',
-                               unhealthy_product=unhealthy_product,
-                               healthy_product=healthy_product[0]["name"],
-                               description=healthy_product[0]["description"],
-                               stores=self.stores_str,
-                               url=healthy_product[0]["url"])
+                History.insert(self, unhealthy_product, healthy_product[0]['name'], healthy_product[0]['description'], self.stores_str, healthy_product[0]['url'])
 
-                print("\nRésultat sauvegardé !")
+                print('\nRésultat sauvegardé !')
             elif backup_choice == 2:
                 pass
 
     def get_saved_results(self):
         """ Allows the user to retrieve old queries """
-        saved_results = database.query("""SELECT *
-                                       FROM History
-                                       ORDER BY request_date DESC
-                                       LIMIT 5""")
+        saved_results = History.select_last_results(self)
 
-        print("\nVoici les résultats de vos dernières recherches :")
+        print('\nVoici les résultats de vos dernières recherches :')
 
         for saved_result in saved_results:
-            print(f"\nDate de la recherche : {saved_result['request_date']}")
-            print(f"Produit substitué : {saved_result['unhealthy_product']}")
-            print(f"Produit proposé : {saved_result['healthy_product']}")
-            print(f"Description : {saved_result['description']}")
-            print(f"Disponible chez : {saved_result['stores']}")
-            print(f"{saved_result['url']}")
+            print(f'\nDate de la recherche : {saved_result["request_date"]}')
+            print(f'Produit substitué : {saved_result["unhealthy_product"]}')
+            print(f'Produit proposé : {saved_result["healthy_product"]}')
+            print(f'Description : {saved_result["description"]}')
+            print(f'Disponible chez : {saved_result["stores"]}')
+            print(f'{saved_result["url"]}')
 
 
 def parse_arguments():
-    """ Returns an arguments parser with an "update" argument. """
+    """ Returns an arguments parser with an 'update' argument. """
     parser = argparse.ArgumentParser()
-    parser.add_argument("-u", "--update", action="store_true",
-                        help="database update")
+    parser.add_argument('-u', '--update', action='store_true',
+                        help='database update')
     return parser.parse_args()
 
 
@@ -376,5 +299,5 @@ def main():
     App(argument.update)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
