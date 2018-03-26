@@ -7,14 +7,14 @@ from records import Database
 
 import datetime
 
-from untracked_config import MYSQL_ID, MYSQL_PW
+from params import MYSQL_ID, MYSQL_PW
 
 
 # db_name = "healthier_food_" + str(datetime.datetime.now())
 # Problème de droits d'accès à la base !
 db_name = "healthier_food"
 
-# database = Database(f'mysql+pymysql://{MYSQL_ID}:{MYSQL_PW}@localhost')
+# database = Database(f'mysql+pymysql://{MYSQL_ID}:{MYSQL_PW}@localhost/?charset=utf8')
 database = Database(f'''mysql+pymysql://{MYSQL_ID}:\
 {MYSQL_PW}@localhost/{db_name}?charset=utf8''')
 
@@ -25,14 +25,15 @@ nutrition_grades = ["a", "b", "d", "e"]
 tag_categories = ["Pizzas",
                   "Céréales pour petit-déjeuner",
                   "Snacks sucrés",
-                  "Confiseries",
-                  "Sodas",
-                  "Plats préparés",
-                  "Produits laitiers",
-                  "Produits à tartiner",
-                  "Crèmes glacées",
-                  "Fromages"
+                  "Confiseries"
                   ]
+                  # "Sodas",
+                  # "Plats préparés",
+                  # "Produits laitiers",
+                  # "Produits à tartiner",
+                  # "Crèmes glacées",
+                  # "Fromages"
+
 """
 
 Requête pour récupérer les ids des catégories qui contiennent au moins 10 produits sains :
@@ -41,7 +42,7 @@ SELECT Product_Categorie.categorie_id, COUNT(*) AS nb_products
 FROM Product
 JOIN Product_Categorie
 ON Product_Categorie.product_id = Product.product_id
-WHERE Product.nutriscore = "a" OR Product.nutriscore = "b"
+WHERE Product.nutrition_grade = "a" OR Product.nutrition_grade = "b"
 GROUP BY Product_Categorie.categorie_id
 HAVING nb_products > 10
 ORDER BY nb_products;
