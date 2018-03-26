@@ -10,7 +10,7 @@ App class manages ...
 from threading import Thread
 
 from database_creator import DatabaseCreator
-from database_updater import DatabaseFiller
+from database_filler import DatabaseFiller
 from app import App
 
 
