@@ -1,0 +1,11 @@
+#! /usr/bin/env phyton3
+# coding: utf-8
+
+""" File to be updated by the user with personal data before first use of the application """
+
+# Replace "id" by your own mysql identifier and "pw" by your own mysql password :
+MYSQL_ID = "id"
+MYSQL_PW = "pw"
+
+# Finally, rename this file removing the ".dist" extension, so as to
+# keep "params.py" as file name
