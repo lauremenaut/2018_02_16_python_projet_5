@@ -22,12 +22,12 @@ class Categorie:
         """ Categorie constructor """
         pass
 
-    def select_product_categories(self, id):
-        local_product_categories = \
+    def select_categorie_name(self, categorie_id):
+        categorie_name = \
             database.query('''SELECT Categorie.name
                            FROM Categorie
                            JOIN Product_Categorie
                            ON Categorie.categorie_id = Product_Categorie.categorie_id
-                           WHERE Categorie.categorie_id = :id''',
-                           id=id)
-        return local_product_categories
+                           WHERE Categorie.categorie_id = :categorie_id''',
+                           categorie_id=categorie_id)
+        return categorie_name
