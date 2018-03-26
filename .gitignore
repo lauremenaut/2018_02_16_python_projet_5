@@ -1,2 +1,3 @@
 env
-untracked_config.py
+params.py
+errors_log.txt
