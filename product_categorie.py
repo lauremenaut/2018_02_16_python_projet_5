@@ -55,3 +55,10 @@ class Product_Categorie:
                            WHERE Product.name = :name''',
                            name=healthy_product_name)
         return healthy_product_categories_ids
+
+    def delete_line(self, product_id, categorie_id):
+        database.query('''DELETE FROM Product_Categorie
+                       WHERE Product_Categorie.product_id = :product_id
+                           AND Product_Categorie.categorie_id = :categorie_id''',
+                       product_id=product_id,
+                       categorie_id=categorie_id)
