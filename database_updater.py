@@ -47,13 +47,6 @@ class DatabaseUpdater:  # 'Old-style class defined' ??
         codes = database.query('''SELECT Product.product_id
                 FROM Product''')
 
-        # response = get(f'''https://fr.openfoodfacts.org/api/v0/product/{codes[0]['product_id']}.json''')
-        # data = response.json()
-        # OFF_product = data['product']
-
-        # for key in OFF_product.keys():
-        #     print(key)  # Regarder si équivalent de 'description' ...
-
         # for i in range(len(codes.all())):
         for i in range(4):
             try:  # Attention : gérer le cas où le produit a été retiré de la base !!
@@ -97,59 +90,40 @@ class DatabaseUpdater:  # 'Old-style class defined' ??
 
                 local_product_categories_id = Product_Categorie.select_product_categories_id(self, OFF_code)
 
+                print('1 - local_product_categories_id.all() : ', local_product_categories_id.all())
+                print('2 - len(local_product_categories_id) : ', len(local_product_categories_id.all()))
+
                 local_product_categories_list = []
 
-                print('1 - local_product_categorie_ids.all() : ', local_product_categories_id.all())
-                print('2 - len(local_product_categorie_ids) : ', len(local_product_categories_id.all()))
+                for j in range(len(local_product_categories_id.all())):
+                    categorie_name = Categorie.select_categorie_name(self, local_product_categories_id[j]['categorie_id'])
+                    local_product_categories_list.append(categorie_name[0]['name'])
+
+                for k in range(len(local_product_categories_list)):
+                    if local_product_categories_list[k] not in OFF_categories:
+                        Product_Categorie.delete_line(self, OFF_code, local_product_categories_id[k]['categorie_id'])
+                        print(f'Removed corresponding line between product "{local_product[0]["name"]}" and categorie "{local_product_categories_list[k]}" from Product_Categorie table')
+                # Vérifier si la catégorie est toujours utilisée, sinon on peut la supprimer de la table Categorie
+
+                print('A - local_product_categories_list : ', local_product_categories_list)
+                print('B - OFF_categories_list : ', OFF_categories)
+
+                for categorie in OFF_categories:
+                    if categorie not in local_product_categories_list:
+                        pass
+                        # 1 - si le nom existe déjà dans la table Categorie
+                        # alors on récupère son id et on ajoute une ligne dans Product_Categorie
+                        # 2 - sinon, on ajoute le nom dans Categorie, on récupère l'id et on ajoute une ligne dans Product_Categorie
+                        # database.query('''INSERT INTO
+                        #                Product_Categorie (product_id, categorie_id)
+                        #                VALUES ((SELECT product_id FROM Product
+                        #                         WHERE product_id = :code),
+                        #                        (SELECT categorie_id FROM Categorie
+                        #                         WHERE name = :categorie))''',
+                        #                code=OFF_code, categorie=categorie)
 
 
-                # for i in range(len(local_product_categorie_ids.all())):
-                for i in range(3):
-                    try:
-                        local_product_categories = Categorie.select_product_categories(self, local_product_categories_id[i]["categorie_id"])
-
-                        local_product_categories_list. \
-                            append(local_product_categories[i]['name'])
-
-                        print('A - local_product_categorie_ids[i] : ', local_product_categories_id[i])
-                        print('B - local_product_categorie_ids[i]["categorie_id"]) : ', local_product_categories_id[i]["categorie_id"])
-                        print('C - local_product_categories : ', local_product_categories)
-                        print('C\' - len(local_product_categories) : ', len(local_product_categories.all()))
-                        print('D - local_product_categories[i] : ', local_product_categories[i])
-                        print('E - local_product_categories[i]["name"] : ', local_product_categories[i]["name"])
-                        print('F - local_product_categories_list : ', local_product_categories_list)
-                        print('******************\nEnd of small loop\n******************')
-
-
-                        # for i in range(len(local_product_categories)):
-                        #     local_product_categories_list. \
-                        #         append(local_product_categories[i]['name'])
-
-                        #     if local_product_categories_list[i] not in OFF_categories:
-                        #         database.query('''DELETE FROM Product_Categorie
-                        #                        WHERE Product_Categorie.product_id = :code''',
-                        #                        code=OFF_code)
-
-                        # for categorie in local_product_categories_list:
-                        #     print(categorie)
-
-
-                        # for categorie in OFF_categories:
-                        #     print("OFF categorie : ", categorie)
-                        #     if categorie not in local_product_categories_list:
-                        #         database.query('''INSERT INTO
-                        #                        Product_Categorie (product_id, categorie_id)
-                        #                        VALUES ((SELECT product_id FROM Product
-                        #                                 WHERE product_id = :code),
-                        #                                (SELECT categorie_id FROM Categorie
-                        #                                 WHERE name = :categorie))''',
-                        #                        code=OFF_code, categorie=categorie)
-
-
-                    except IndexError as e:
-                        print('Aïe !! IndexError : ', e)
-
-                print('******************\nEnd of large loop\n******************')
+                print('******************\nEnd of loop\n******************')
 
             except KeyError as e:
                 print(e)
