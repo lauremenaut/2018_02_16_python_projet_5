@@ -13,22 +13,22 @@ from config import database, db_name
 class DatabaseCreator:
     """ Sets DatabaseCreator class.
 
-    Class consists of 5 methods :
+    Consists of 5 private methods :
         - __init__()
-        - create_database()
-        - drop_foreign_keys()
-        - create_tables()
-        - create_foreign_keys()
+        - _create_database()
+        - _drop_foreign_keys()
+        - _create_tables()
+        - _create_foreign_keys()
 
     """
     def __init__(self):
         """ DatabaseCreator constructor """
-        self.create_database()
-        self.drop_foreign_keys()
-        self.create_tables()
-        self.create_foreign_keys()
+        self._create_database()
+        self._drop_foreign_keys()
+        self._create_tables()
+        self._create_foreign_keys()
 
-    def create_database(self):
+    def _create_database(self):
         """ Creates local database if not already exists """
 
 # Avant de pouvoir créer la base, il faut se connecter via root pour donner
@@ -37,11 +37,11 @@ class DatabaseCreator:
 
         # database.query(f'DROP DATABASE IF EXISTS {db_name}')
         # database.query(f'CREATE DATABASE {db_name} CHARACTER SET "utf8"')
-        database.query(f'''CREATE DATABASE IF NOT EXISTS {db_name}
-                       CHARACTER SET "utf8"''')
+        database.query(f"""CREATE DATABASE IF NOT EXISTS {db_name}
+                       CHARACTER SET 'utf8'""")
         database.query(f'USE {db_name}')
 
-    def drop_foreign_keys(self):
+    def _drop_foreign_keys(self):
         """ Deletes foreign keys if exist """
         try:
             database.query('''ALTER TABLE Product_Categorie
@@ -53,9 +53,9 @@ class DatabaseCreator:
             database.query('''ALTER TABLE Product_Store
                            DROP FOREIGN KEY store_product_store_fk''')
         except:  # Comment améliorer ça ?
-            print("Foreign keys not dropped")
+            print('Foreign keys not dropped')
 
-    def create_tables(self):
+    def _create_tables(self):
         """ Creates or recreates empty tables, except for History table
         which content is not dropped """
         database.query('DROP TABLE IF EXISTS Product')
@@ -65,7 +65,7 @@ class DatabaseCreator:
                        description VARCHAR(100) NOT NULL,
                        brand VARCHAR(30) UNIQUE NOT NULL,
                        url VARCHAR(150) NOT NULL,
-                       nutriscore CHAR(1) NOT NULL,
+                       nutrition_grade CHAR(1) NOT NULL,
                        PRIMARY KEY (product_id))''')
 
         database.query('DROP TABLE IF EXISTS Categorie')
@@ -102,7 +102,7 @@ class DatabaseCreator:
                        url VARCHAR(150) NOT NULL,
                        PRIMARY KEY (history_id))''')
 
-    def create_foreign_keys(self):
+    def _create_foreign_keys(self):
         """ Creates or recreates foreign keys """
         database.query('''ALTER TABLE Product_Categorie
                        ADD CONSTRAINT product_product_categorie_fk
