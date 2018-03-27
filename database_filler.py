@@ -13,6 +13,11 @@ from requests import get
 import sys
 
 from config import database, db_name, nutrition_grades, tag_categories
+from product import Product
+from categorie import Categorie
+from product_categorie import Product_Categorie
+from store import Store
+from product_store import Product_Store
 
 
 # Où met-on ces 2 lignes ??
@@ -23,13 +28,11 @@ from config import database, db_name, nutrition_grades, tag_categories
 class DatabaseFiller:  # 'Old-style class defined' ??
     """ Sets DatabaseFiller class.
 
-    Consists of 6 private methods :
+    Consists of 3 private methods :
         - __init__()
         - _get_products()
         - _fill_db()
-        - _insert_products()
-        - _insert_categories()
-        - _insert_stores()
+
 
     """
     def __init__(self):
@@ -101,60 +104,13 @@ class DatabaseFiller:  # 'Old-style class defined' ??
             # database
             if all([self.code, self.name, self.description, self.brand, self.url,
                     self.nutrition_grade, self.categories[0], self.stores[0]]):
-                self._insert_product()
-                self._insert_categories()
-                self._insert_stores()
-
-    def _insert_product(self):
-        # Product information is added in Product table
-        # 'code' is saved in 'product_id' column
-        database.query('''INSERT IGNORE INTO Product
-               VALUES (:code,
-                       :name,
-                       :description,
-                       :brand,
-                       :url,
-                       :nutrition_grade)''',
-                       code=self.code,
-                       name=self.name,
-                       description=self.description,
-                       brand=self.brand,
-                       url=self.url,
-                       nutrition_grade=self.nutrition_grade)
-
-    def _insert_categories(self):
-        # Categorie information is added in Categorie and
-        # Product_Categorie tables (Unique Key on categorie name
-        # column prevents duplicate entry)
-        for categorie in self.categories:
-            database.query('''INSERT IGNORE INTO Categorie (name)
-                           VALUES (:categorie)''',
-                           categorie=categorie)
-
-            database.query('''INSERT IGNORE INTO
-                           Product_Categorie (product_id, categorie_id)
-                           VALUES ((SELECT product_id FROM Product
-                                    WHERE name = :name),
-                                   (SELECT categorie_id FROM Categorie
-                                    WHERE name = :categorie))''',
-                           name=self.name, categorie=categorie)
-
-    def _insert_stores(self):
-        # Store information is added in Store and
-        # Product_Store tables (Unique Key on store name column
-        # prevents duplicate entry)
-        for store in self.stores:
-            database.query('''INSERT IGNORE INTO Store (name)
-                           VALUES (:store)''', store=store)
-
-            database.query('''INSERT IGNORE INTO
-                           Product_Store (product_id, store_id)
-                           VALUES ((SELECT product_id FROM Product
-                                    WHERE name = :name),
-                                   (SELECT store_id FROM Store
-                                    WHERE name = :store))''',
-                           name=self.name, store=store)
-
+                Product.insert(self, self.code, self.name, self.description, self.brand, self.url, self.nutrition_grade)
+                for categorie in self.categories:
+                    Categorie.insert(self, categorie)
+                    Product_Categorie.insert(self, categorie, self.name)
+                for store in self.stores:
+                    Store.insert(self, store)
+                    Product_Store.insert(self, store, self.name)
 
 def main():
     DatabaseFiller()
