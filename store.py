@@ -13,8 +13,9 @@ from config import database
 class Store:
     """ Sets Store class.
 
-    Class consists of 2 methods :
+    Class consists of 3 methods :
         - __init__()
+        - insert()
         - select_store()
 
     """
@@ -22,14 +23,14 @@ class Store:
         """ Store constructor """
         pass
 
-    def insert_store(self, store):
+    def insert(self, store):
         # Store information is added in Store and
         # Product_Store tables (Unique Key on store name column
         # prevents duplicate entry)
             database.query('''INSERT IGNORE INTO Store (name)
                            VALUES (:store)''', store=store)
 
-    def select_store(self, store_id):
+    def select(self, store_id):
         store = database.query('''SELECT Store.name
                                FROM Store
                                WHERE Store.store_id = :store_id''',
