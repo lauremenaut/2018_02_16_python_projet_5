@@ -22,12 +22,12 @@ class Product_Store:
         """ Product_Store constructor """
         pass
 
-    def select_store_ids(self, healthiest_match):
+    def select_stores_id(self, name):
         store_ids = database.query('''SELECT Product_Store.store_id
                                    FROM Product_Store
                                    JOIN Product
                                    ON Product.product_id = \
                                        Product_Store.product_id
                                    WHERE Product.name = :name''',
-                                   name=healthiest_match)
+                                   name=name)
         return store_ids
