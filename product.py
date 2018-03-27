@@ -28,35 +28,19 @@ class Product:
     def select_product_information(self, code):
         ''' Selects product information for product which product_id is
         given as a parameter (= code) '''
-        product_information = database.query('''SELECT Product.product_id,
-                                             Product.name,
-                                             Product.description,
-                                             Product.brand,
-                                             Product.nutrition_grade
-                                             FROM Product
-                                             WHERE Product.product_id = :code''',
-                                             code=code)
+        product_information = \
+            database.query('''SELECT Product.product_id,
+                                     Product.name,
+                                     Product.description,
+                                     Product.brand,
+                                     Product.nutrition_grade
+                           FROM Product
+                           WHERE Product.product_id = :code''',
+                           code=code)
         return product_information
 
-    def select_unhealthy_products_names(self, categorie):
-        unhealthy_products = \
-            database.query('''SELECT Product.name
-                           FROM Product
-                           JOIN Product_Categorie
-                           ON Product.product_id = Product_Categorie.product_id
-                           JOIN Categorie
-                           ON Categorie.categorie_id = \
-                               Product_Categorie.categorie_id
-                           WHERE Categorie.name = :selected_categorie
-                           AND (Product.nutrition_grade = 'e' OR \
-                               Product.nutrition_grade = 'd')''',
-                           selected_categorie=categorie)
-        return unhealthy_products
-
-    def select_healthy_products_information(self, categorie):
-        # Retrieves products from chosen categorie which nutrition_grade is
-        # "a" or "b"
-        healthy_products = \
+    def select_products_information(self, categorie, n_g_1, n_g_2):
+        products_information = \
             database.query('''SELECT Product.product_id,
                                      Product.name,
                                      Product.description,
@@ -67,32 +51,35 @@ class Product:
                            JOIN Categorie
                            ON Categorie.categorie_id = \
                                Product_Categorie.categorie_id
-                           WHERE (Product.nutrition_grade = 'a' OR \
-                               Product.nutrition_grade = 'b')
-                           AND Categorie.name = :categorie''',
-                           categorie=categorie)
-        return healthy_products
+                           WHERE Categorie.name = :categorie
+                           AND (Product.nutrition_grade = :n_g_1 OR \
+                               Product.nutrition_grade = :n_g_2)''',
+                           categorie=categorie,
+                           n_g_1=n_g_1,
+                           n_g_2=n_g_2)
+        return products_information
 
-    def select_match_information(self, match):
-        healthy_match = database.query('''SELECT name, nutrition_grade
-                                       FROM Product
-                                       WHERE name = :name
-                                       AND nutrition_grade = "a"''',
-                                       name=match)
-        return healthy_match
+    def select_match_information(self, name):
+        product_information = \
+            database.query('''SELECT Product.name
+                           FROM Product
+                           WHERE name = :name
+                           AND nutrition_grade = "a"''',
+                           name=name)
+        return product_information
 
-    def select_healthiest_match_information(self, healthiest_match):
+    def select_healthiest_match_information(self, name):
         # Retrieves information for the product proposed to the user
         # ('healthiest_match')
-        proposed_product = \
+        product_information = \
             database.query('''SELECT Product.product_id,
                                      Product.name,
                                      Product.description,
                                      Product.url
                            FROM Product
                            WHERE Product.name = :name''',
-                           name=healthiest_match)
-        return proposed_product
+                           name=name)
+        return product_information
 
     def update_name(self, name, code):
         database.query('''UPDATE IGNORE Product
