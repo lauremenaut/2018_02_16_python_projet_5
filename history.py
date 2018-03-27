@@ -16,7 +16,7 @@ class History:
     Class consists of 3 methods :
         - __init__()
         - insert()
-        - select_last_results()
+        - select()
 
     """
     def __init__(self):
@@ -38,9 +38,9 @@ class History:
                        stores=stores,
                        url=url)
 
-    def select_last_results(self):
-        saved_results = database.query('''SELECT *
+    def select(self):
+        last_results = database.query('''SELECT *
                                        FROM History
                                        ORDER BY request_date DESC
-                                       LIMIT 5''')
-        return saved_results
+                                       LIMIT 10''')
+        return last_results
