@@ -13,8 +13,9 @@ from config import database
 class Product:
     """ Sets Product class.
 
-    Consists of ... methods :
+    Consists of 10 methods :
         - __init__()
+        - insert()
         - select_product_information()
         - select_products_information()
         - select_match_information()
