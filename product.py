@@ -13,17 +13,37 @@ from config import database
 class Product:
     """ Sets Product class.
 
-    Consists of 5 methods :
+    Consists of ... methods :
         - __init__()
-        - select_unhealthy_products_names()
-        - select_healthy_products_information()
-        - select_name_grade()
+        - select_product_information()
+        - select_products_information()
+        - select_match_information()
         - select_healthiest_match_information()
-
+        - update_name()
+        - update_description()
+        - update_brand()
+        - update_nutrition_grade()
     """
     def __init__(self):
         """ Product constructor """
         pass
+
+    def insert(self, code, name, description, brand, url, nutrition_grade):
+        # Product information is added in Product table
+        # 'code' is saved in 'product_id' column
+        database.query('''INSERT IGNORE INTO Product
+               VALUES (:code,
+                       :name,
+                       :description,
+                       :brand,
+                       :url,
+                       :nutrition_grade)''',
+                       code=code,
+                       name=name,
+                       description=description,
+                       brand=brand,
+                       url=url,
+                       nutrition_grade=nutrition_grade)
 
     def select_product_information(self, code):
         ''' Selects product information for product which product_id is
@@ -59,6 +79,7 @@ class Product:
                            n_g_2=n_g_2)
         return products_information
 
+# Peut-on combiner ces 2 méthodes ?? Comment mettre n_g en paramètre ...
     def select_match_information(self, name):
         product_information = \
             database.query('''SELECT Product.name
@@ -104,21 +125,3 @@ class Product:
                        SET nutrition_grade = :nutrition_grade
                        WHERE Product.product_id = :code''',
                        nutrition_grade=nutrition_grade, code=code)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
