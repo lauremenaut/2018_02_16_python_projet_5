@@ -22,12 +22,18 @@ class Categorie:
         """ Categorie constructor """
         pass
 
-    def select_categorie_name(self, categorie_id):
+    def select_categorie_name_based_on_id(self, categorie_id):
         categorie_name = \
             database.query('''SELECT Categorie.name
                            FROM Categorie
-                           JOIN Product_Categorie
-                           ON Categorie.categorie_id = Product_Categorie.categorie_id
                            WHERE Categorie.categorie_id = :categorie_id''',
                            categorie_id=categorie_id)
+        return categorie_name
+
+    def select_categorie_name_based_on_name(self, name):
+        categorie_name = \
+            database.query('''SELECT Categorie.name
+                           FROM Categorie
+                           WHERE Categorie.name = :name''',
+                           name=name)
         return categorie_name
