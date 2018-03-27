@@ -106,7 +106,7 @@ aliment''')
     def choose_unhealthy_product(self, categorie):
         """ Retrieves unhealthy products from chosen categorie in local
         database, displays 10 of them and returns the chosen one. """
-        unhealthy_products = Product.select_unhealthy_products_names(self, categorie)
+        unhealthy_products = Product.select_products_information(self, categorie, 'd', 'e')
 
         carry_on_3 = True
 
@@ -138,7 +138,7 @@ aliment''')
 
         # Retrieves id of categories to which belongs the chosen
         # unhealthy product
-        unhealthy_product_categories_id = Product_Categorie.select_unhealthy_product_categories_id(self, unhealthy_product)
+        unhealthy_product_categories_id = Product_Categorie.select_categories_id_based_on_product_name(self, unhealthy_product)
 
         unhealthy_product_categories_id_list = []
         for i in range(len(unhealthy_product_categories_id.all())):
@@ -150,7 +150,7 @@ aliment''')
 
         # Retrieves products from chosen categorie which nutrition_grade is
         # "a" or "b"
-        healthy_products = Product.select_healthy_products_information(self, categorie)
+        healthy_products = Product.select_products_information(self, categorie, 'a', 'b')
 
         # Dictionnary {name of healthy product : number of categories it
         # shares with chosen unhealthy_product}
@@ -158,7 +158,7 @@ aliment''')
 
         for i in range(len(healthy_products.all())):
             # For each healthy product, retrieves categories ids
-            healthy_product_categories_ids = Product_Categorie.select_healthy_product_categories_id(self, healthy_products[i]['name'])
+            healthy_product_categories_ids = Product_Categorie.select_categories_id_based_on_product_name(self, healthy_products[i]['name'])
 
             # For each healthy product, makes a list of categories
             # it shares with chosen unhealthy product
@@ -225,7 +225,7 @@ aliment''')
         proposed_product = Product.select_healthiest_match_information(self,healthiest_match)
 
         # Retrieves id of stores selling the proposed product
-        store_ids = Product_Store.select_store_ids(self, healthiest_match)
+        store_ids = Product_Store.select_stores_id(self, healthiest_match)
 
         # List of stores selling the proposed product
         self.stores = []
