@@ -15,15 +15,18 @@ class Product_Categorie:
 
     Class consists of 3 methods :
         - __init__()
-        - select_unhealthy_product_categories_id()
-        - select_healthy_product_categories_id()
+        - insert()
+        - select_categories_id_based_on_product_id()
+        - select_categories_id_based_on_product_name()
+        - select_product_categorie_based_on_categorie_id()
+        - delete()
 
     """
     def __init__(self):
         """ Product_Categorie constructor """
         pass
 
-    def insert_product_categorie(self, categorie, name):
+    def insert(self, categorie, name):
         # Categorie information is added in Categorie and
         # Product_Categorie tables (Unique Key on categorie name
         # column prevents duplicate entry)
@@ -57,14 +60,14 @@ class Product_Categorie:
 
     def select_product_categorie_based_on_categorie_id(self, categorie_id):
         product_categorie = \
-            database.query('''SELECT Product_Categorie.categorie_id
+            database.query('''SELECT Product_Categorie.categorie_id,
                                      Product_Categorie.product_id
                            FROM Product_Categorie
                            WHERE Product_Categorie.categorie_id = :categorie_id''',
                            categorie_id=categorie_id)
         return product_categorie
 
-    def delete_line(self, product_id, categorie_id):
+    def delete(self, product_id, categorie_id):
         database.query('''DELETE FROM Product_Categorie
                        WHERE Product_Categorie.product_id = :product_id
                            AND Product_Categorie.categorie_id = :categorie_id''',
