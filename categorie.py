@@ -15,14 +15,17 @@ class Categorie:
 
     Class consists of ... methods :
         - __init__()
-        -
+        - insert()
+        - select_categorie_name_based_on_id()
+        - select_categorie_name_based_on_name()
+        - delete()
 
     """
     def __init__(self):
         """ Categorie constructor """
         pass
 
-    def insert_categorie(self, categorie):
+    def insert(self, categorie):
         # Categorie information is added in Categorie and
         # Product_Categorie tables (Unique Key on categorie name
         # column prevents duplicate entry)
@@ -40,7 +43,7 @@ class Categorie:
 
     def select_categorie_name_based_on_name(self, categorie):
         categorie_name = \
-            database.query('''SELECT Categorie.name
+            database.query('''SELECT Categorie.name,
                                      Categorie.categorie_id
                            FROM Categorie
                            WHERE Categorie.name = :categorie''',
