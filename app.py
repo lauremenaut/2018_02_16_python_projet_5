@@ -22,13 +22,13 @@ from history import History
 class App:
     """ Sets App class.
 
-    Consists of ... methods :
+    Consists of 6 methods :
         - __init__()
-        - choose_categorie()
-        - choose_unhealthy_product()
-        - get_healthy_product()
-        - save_result()
-        - get_saved_result()
+        - _choose_categorie()
+        - _choose_unhealthy_product()
+        - _get_healthy_product()
+        - _save_result()
+        - _get_saved_result()
 
     """
     def __init__(self, update):
@@ -65,19 +65,19 @@ aliment''')
                 continue
             else:
                 if starting_choice == 1:
-                    categorie = self.choose_categorie()
+                    categorie = self._choose_categorie()
                     unhealthy_product = \
-                        self.choose_unhealthy_product(categorie)
+                        self._choose_unhealthy_product(categorie)
                     healthy_product = \
-                        self.get_healthy_product(unhealthy_product, categorie)
-                    self.save_result(unhealthy_product, healthy_product)
+                        self._get_healthy_product(unhealthy_product, categorie)
+                    self._save_result(unhealthy_product, healthy_product)
                 elif starting_choice == 2:
-                    self.get_saved_results()
+                    self._get_saved_results()
                 elif starting_choice == 3:
                     print('\nMerci de votre visite !\n')
                     carry_on_1 = False
 
-    def choose_categorie(self):
+    def _choose_categorie(self):
         """ Displays a list of indexed categories and returns the chosen
         one. """
 
@@ -103,7 +103,7 @@ aliment''')
         selected_categorie = tag_categories[categorie_choice - 1]
         return selected_categorie
 
-    def choose_unhealthy_product(self, categorie):
+    def _choose_unhealthy_product(self, categorie):
         """ Retrieves unhealthy products from chosen categorie in local
         database, displays 10 of them and returns the chosen one. """
         unhealthy_products = Product.select_products_information(self, categorie, 'd', 'e')
@@ -132,7 +132,7 @@ aliment''')
             unhealthy_products[unhealthy_product_choice - 1]["name"].capitalize()
         return selected_unhealthy_product
 
-    def get_healthy_product(self, unhealthy_product, categorie):
+    def _get_healthy_product(self, unhealthy_product, categorie):
         """ Returns the best matching healthy product and its
         information """
 
@@ -245,7 +245,7 @@ aliment''')
 
         return proposed_product
 
-    def save_result(self, unhealthy_product, healthy_product):
+    def _save_result(self, unhealthy_product, healthy_product):
         """ Allows the user to save the result of its query """
         print('\nSouhaitez-vous enregistrer ce résultat pour le retrouver plus\
  tard ?\n')
@@ -271,7 +271,7 @@ saisir 1 ou 2.''')
             elif backup_choice == 2:
                 pass
 
-    def get_saved_results(self):
+    def _get_saved_results(self):
         """ Allows the user to retrieve old queries """
         saved_results = History.select_last_results(self)
 
