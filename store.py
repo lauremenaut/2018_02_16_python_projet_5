@@ -22,6 +22,13 @@ class Store:
         """ Store constructor """
         pass
 
+    def insert_store(self, store):
+        # Store information is added in Store and
+        # Product_Store tables (Unique Key on store name column
+        # prevents duplicate entry)
+            database.query('''INSERT IGNORE INTO Store (name)
+                           VALUES (:store)''', store=store)
+
     def select_store(self, store_id):
         store = database.query('''SELECT Store.name
                                FROM Store
