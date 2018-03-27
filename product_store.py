@@ -13,8 +13,9 @@ from config import database
 class Product_Store:
     """ Sets Product_Store class.
 
-    Class consists of 2 methods :
+    Class consists of 3 methods :
         - __init__()
+        - insert()
         - select_store_ids
 
     """
@@ -22,7 +23,7 @@ class Product_Store:
         """ Product_Store constructor """
         pass
 
-    def insert_product_store(self, store, name):
+    def insert(self, store, name):
         # Store information is added in Store and
         # Product_Store tables (Unique Key on store name column
         # prevents duplicate entry)
