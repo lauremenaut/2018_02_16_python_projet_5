@@ -88,7 +88,7 @@ class DatabaseUpdater:  # 'Old-style class defined' ??
                     Product.update_nutrition_grade(OFF_nutrition_grade, OFF_code)
                     print('"nutrition_grade" updated !')
 
-                local_product_categories_id = Product_Categorie.select_product_categories_id(self, OFF_code)
+                local_product_categories_id = Product_Categorie.select_categories_id_based_on_product_id(self, OFF_code)
 
                 print('1 - local_product_categories_id.all() : ', local_product_categories_id.all())
                 print('2 - len(local_product_categories_id) : ', len(local_product_categories_id.all()))
@@ -96,7 +96,7 @@ class DatabaseUpdater:  # 'Old-style class defined' ??
                 local_product_categories_list = []
 
                 for j in range(len(local_product_categories_id.all())):
-                    categorie_name = Categorie.select_categorie_name(self, local_product_categories_id[j]['categorie_id'])
+                    categorie_name = Categorie.select_categorie_name_based_on_id(self, local_product_categories_id[j]['categorie_id'])
                     local_product_categories_list.append(categorie_name[0]['name'])
 
                 for k in range(len(local_product_categories_list)):
@@ -111,6 +111,7 @@ class DatabaseUpdater:  # 'Old-style class defined' ??
                 for categorie in OFF_categories:
                     if categorie not in local_product_categories_list:
                         pass
+
                         # 1 - si le nom existe déjà dans la table Categorie
                         # alors on récupère son id et on ajoute une ligne dans Product_Categorie
                         # 2 - sinon, on ajoute le nom dans Categorie, on récupère l'id et on ajoute une ligne dans Product_Categorie
