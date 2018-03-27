@@ -23,6 +23,18 @@ class Product_Categorie:
         """ Product_Categorie constructor """
         pass
 
+    def insert_product_categorie(self, categorie, name):
+        # Categorie information is added in Categorie and
+        # Product_Categorie tables (Unique Key on categorie name
+        # column prevents duplicate entry)
+            database.query('''INSERT IGNORE INTO
+                           Product_Categorie (product_id, categorie_id)
+                           VALUES ((SELECT product_id FROM Product
+                                    WHERE name = :name),
+                                   (SELECT categorie_id FROM Categorie
+                                    WHERE name = :categorie))''',
+                           name=name, categorie=categorie)
+
     def select_categories_id_based_on_product_id(self, product_id):
         categories_id = \
             database.query('''SELECT Product_Categorie.categorie_id
@@ -42,6 +54,15 @@ class Product_Categorie:
                            WHERE Product.name = :name''',
                            name=product_name)
         return categories_id
+
+    def select_product_categorie_based_on_categorie_id(self, categorie_id):
+        product_categorie = \
+            database.query('''SELECT Product_Categorie.categorie_id
+                                     Product_Categorie.product_id
+                           FROM Product_Categorie
+                           WHERE Product_Categorie.categorie_id = :categorie_id''',
+                           categorie_id=categorie_id)
+        return product_categorie
 
     def delete_line(self, product_id, categorie_id):
         database.query('''DELETE FROM Product_Categorie
