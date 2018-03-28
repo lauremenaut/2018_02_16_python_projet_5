@@ -31,7 +31,7 @@ class App:
         - _get_saved_result()
 
     """
-    def __init__(self, update):
+    def __init__(self, update):  # Attention, remettre update en 2ème argument !!
         """ App constructor.
 
         Updates local database if required ('update' argument parsed).
@@ -231,7 +231,7 @@ aliment''')
         self.stores = []
 
         for i in range(len(store_ids.all())):
-            store = Store.select_store(self, store_ids[i]['store_id'])
+            store = Store.select(self, store_ids[i]['store_id'])
             self.stores.append(store)
 
         self.stores_str = ', '.join(self.stores)
@@ -273,7 +273,7 @@ saisir 1 ou 2.''')
 
     def _get_saved_results(self):
         """ Allows the user to retrieve old queries """
-        saved_results = History.select_last_results(self)
+        saved_results = History.select(self)
 
         print('\nVoici les résultats de vos dernières recherches :')
 
