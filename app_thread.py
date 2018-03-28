@@ -9,23 +9,12 @@ App class manages ...
 
 from threading import Thread
 
-from database_creator import DatabaseCreator
-from database_filler import DatabaseFiller
+import os
+import pickle
+import time
+
+from database_updater import DatabaseUpdater
 from app import App
-
-
-class UpdateThread(Thread):
-    """ Sets Update_thread class.
-
-    Consists of 2 methods :
-
-    """
-    def __init__(self):
-        Thread.__init__(self)
-
-    def run(self):
-        DatabaseCreator()
-        DatabaseFiller()
 
 
 class AppThread(Thread):
@@ -38,17 +27,44 @@ class AppThread(Thread):
         Thread.__init__(self)
 
     def run(self):
-        App()  # Attention, App() attend 'update' en argument
+        App(update=False)
+
+
+class UpdateThread(Thread):
+    """ Sets Update_thread class.
+
+    Consists of 2 methods :
+
+    """
+    def __init__(self):
+        Thread.__init__(self)
+
+    def run(self):
+        DatabaseUpdater()
 
 
 # Création des threads
-update_thread = UpdateThread()
 app_thread = AppThread()
+update_thread = UpdateThread()
 
 # Lancement des threads
-update_thread.start()
 app_thread.start()
 
-# Attend que les threads se terminent
-update_thread.join()
+if os.path.exists('last_update'):
+    with open('last_update', "rb") as f:
+        my_depickler = pickle.Unpickler(f)
+        last_update_date = my_depickler.load()
+
+    delta_secondes = time.time() - last_update_date
+
+    delta_jour = delta_secondes / (60*60*24)
+
+    print('Nombre de secondes écoulées depuis la dernière mise à jour : ', delta_secondes)
+    print('Nombre de jours écoulés depuis la dernière mise à jour : ', delta_jour)
+
+    if delta_jour > 7:
+        update_thread.start()
+
+# # Attend que les threads se terminent, faut-il le laisser ???
 app_thread.join()
+update_thread.join()
