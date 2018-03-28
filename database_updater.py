@@ -10,7 +10,9 @@ DatabaseUpdater class updates information of each product one-by-one of
 
 from requests import get
 
-import datetime  # A affiner
+from time import time
+import pickle
+import sys
 
 from config import database
 from product import Product
@@ -19,19 +21,17 @@ from product_categorie import Product_Categorie
 from store import Store
 from product_store import Product_Store
 
-
 # Où met-on ces 2 lignes ??
-# import sys
-# OFF_product_keys = open('OFF_product_keys.txt', 'w')  # .txt non tracké (??)
-# sys.stdout = OFF_product_keys
+# errors_log_db_updater = open('errors_log_db_updater.txt', 'w')  # .txt non tracké (??)
+# sys.stderr = errors_log_db_updater
 
 
 class DatabaseUpdater:  # 'Old-style class defined' ??
     """ Sets DatabaseUpdater class.
 
-    Consists of * methods :
+    Consists of 2 methods :
         - __init__()
-        - g
+        - _product_update()
 
     """
     def __init__(self):
@@ -39,9 +39,12 @@ class DatabaseUpdater:  # 'Old-style class defined' ??
 
         For each
         """
-        # self.update_datetime = datetime.datetime.now()
-        # print(f'Date de la dernière mise à jour : {self.update_datetime}')
         self._product_update()
+        last_update_date = time()
+
+        with open('last_update', "wb") as f:
+            my_pickler = pickle.Pickler(f)
+            my_pickler.dump(last_update_date)
 
     def _product_update(self):
         """ ... Open Food Facts API ... """
@@ -51,7 +54,8 @@ class DatabaseUpdater:  # 'Old-style class defined' ??
                 FROM Product''')
 
         # for i in range(len(codes.all())):
-        for i in range(5):
+        for i in range(10):
+            print('\n********Nouveau produit !*********')
             try:  # Attention : gérer le cas où le produit a été retiré de la base !!
                 # For each product_id, retrieves product information from OFF API
                 response = get(f'''https://fr.openfoodfacts.org/api/v0/product/{codes[i]['product_id']}.json''')
