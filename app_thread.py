@@ -67,4 +67,4 @@ if os.path.exists('last_update'):
 
 # # Attend que les threads se terminent, faut-il le laisser ???
 app_thread.join()
-update_thread.join()
+# update_thread.join()
