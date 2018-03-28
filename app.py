@@ -31,7 +31,7 @@ class App:
         - _get_saved_result()
 
     """
-    def __init__(self, update):  # Attention, remettre update en 2ème argument !!
+    def __init__(self, update):
         """ App constructor.
 
         Updates local database if required ('update' argument parsed).
@@ -45,6 +45,10 @@ class App:
             DatabaseCreator()
             DatabaseFiller()
         # database.query('USE healthier_food')
+
+        self._run()
+
+    def _run(self):
         carry_on_1 = True
 
         while carry_on_1:
