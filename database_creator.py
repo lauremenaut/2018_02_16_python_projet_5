@@ -62,7 +62,7 @@ class DatabaseCreator:
         database.query('''CREATE TABLE Product (
                        product_id BIGINT UNSIGNED NOT NULL,
                        name VARCHAR(100) UNIQUE NOT NULL,
-                       description VARCHAR(100) NOT NULL,
+                       description TEXT(500) NOT NULL,
                        brand VARCHAR(30) UNIQUE NOT NULL,
                        url VARCHAR(150) NOT NULL,
                        nutrition_grade CHAR(1) NOT NULL,
@@ -97,8 +97,8 @@ class DatabaseCreator:
                        request_date DATETIME NOT NULL,
                        unhealthy_product VARCHAR(100) NOT NULL,
                        healthy_product VARCHAR(100) NOT NULL,
-                       description VARCHAR(100) NOT NULL,
-                       stores VARCHAR(50) NOT NULL,
+                       description TEXT(500) NOT NULL,
+                       stores VARCHAR(100) NOT NULL,
                        url VARCHAR(150) NOT NULL,
                        PRIMARY KEY (history_id))''')
 
