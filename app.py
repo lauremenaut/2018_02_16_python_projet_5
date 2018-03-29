@@ -22,23 +22,25 @@ from history import History
 class App:
     """ Sets App class.
 
-    Consists of 6 methods :
+    Consists of 12 methods :
         - __init__()
+        - _display_menu()
         - _choose_categorie()
         - _choose_unhealthy_product()
-        - _get_healthy_product()
+        - _get_unhealthy_product_categories_id()
+        - _get_healthy_products()
+        - _get_best_matches()
+        - _get_healthiest_match()
+        - _get_stores()
+        - _display_result()
         - _save_result()
-        - _get_saved_result()
+        - _get_saved_results()
 
     """
     def __init__(self, update):
         """ App constructor.
 
         Updates local database if required ('update' argument parsed).
-        Allows user to choose between :
-        - Looking for a new substitution
-        - Retrieving old substitutions
-        - Quit
 
         """
         if update:
@@ -49,15 +51,17 @@ class App:
         self._run()
 
     def _run(self):
+        """ Manages app running.
+        Allows user to :
+        - Looking for a new substitution and save it
+        - Retrieving old substitutions
+        - Quit
+
+        """
         carry_on_1 = True
 
         while carry_on_1:
-            print('\nQue souhaitez-vous faire ?')
-            print('''\n1 - Chercher une alternative plus saine à un nouvel \
-aliment''')
-            print('2 - Retrouver vos substitutions enregistrées')
-            print('3 - Quitter l\'application')
-
+            self._display_menu()
             try:
                 starting_choice = int(input('\n'))
                 assert starting_choice in [1, 2, 3]
@@ -72,18 +76,34 @@ aliment''')
                     categorie = self._choose_categorie()
                     unhealthy_product = \
                         self._choose_unhealthy_product(categorie)
-                    healthy_product = \
-                        self._get_healthy_product(unhealthy_product, categorie)
-                    self._save_result(unhealthy_product, healthy_product)
+                    categories_id = \
+                        self._get_unhealthy_product_categories_id(unhealthy_product)
+                    healthy_products = \
+                        self._get_healthy_products(categorie, categories_id)
+                    best_matches = \
+                        self._get_best_matches(healthy_products)
+                    proposed_product = \
+                        self._get_healthiest_match(best_matches)
+                    stores = self._get_stores(proposed_product)
+                    self._display_result(unhealthy_product, proposed_product, stores)
+                    self._save_result(unhealthy_product, proposed_product, stores)
                 elif starting_choice == 2:
                     self._get_saved_results()
                 elif starting_choice == 3:
                     print('\nMerci de votre visite !\n')
                     carry_on_1 = False
 
+    def _display_menu(self):
+            print('\nQue souhaitez-vous faire ?')
+            print('''\n1 - Chercher une alternative plus saine à un nouvel \
+aliment''')
+            print('2 - Retrouver vos substitutions enregistrées')
+            print('3 - Quitter l\'application')
+
     def _choose_categorie(self):
-        """ Displays a list of indexed categories and returns the chosen
-        one. """
+        """ Displays a list of indexed categories and returns the one
+        chosen bu user.
+        Return selected_categorie """
 
         carry_on_2 = True
 
@@ -109,7 +129,8 @@ aliment''')
 
     def _choose_unhealthy_product(self, categorie):
         """ Retrieves unhealthy products from chosen categorie in local
-        database, displays 10 of them and returns the chosen one. """
+        database, displays 10 of them and returns the chosen one.
+        Return selected_unhealthy_product """
         unhealthy_products = Product.select_products_information(self, categorie, 'd', 'e')
 
         carry_on_3 = True
@@ -136,10 +157,12 @@ aliment''')
             unhealthy_products[unhealthy_product_choice - 1]["name"].capitalize()
         return selected_unhealthy_product
 
-    def _get_healthy_product(self, unhealthy_product, categorie):
+    # def _get_healthy_product(self, unhealthy_product, categorie):
+    #     pass
         """ Returns the best matching healthy product and its
         information """
 
+    def _get_unhealthy_product_categories_id(self, unhealthy_product):
         # Retrieves id of categories to which belongs the chosen
         # unhealthy product
         unhealthy_product_categories_id = Product_Categorie.select_categories_id_based_on_product_name(self, unhealthy_product)
@@ -148,10 +171,13 @@ aliment''')
         for i in range(len(unhealthy_product_categories_id.all())):
             unhealthy_product_categories_id_list.append(unhealthy_product_categories_id[i]['categorie_id'])
 
-        print('\n\n\n******************************************************')  # A supprimer
-        print(f'''\nListe des id des categories pour \
-{unhealthy_product} : {unhealthy_product_categories_id.all()}\n''')  # A supprimer
+#         print('\n\n\n******************************************************')  # A supprimer
+#         print(f'''\nListe des id des categories pour \
+# {unhealthy_product} : {unhealthy_product_categories_id.all()}\n''')  # A supprimer
 
+        return unhealthy_product_categories_id_list
+
+    def _get_healthy_products(self, categorie, unhealthy_product_categories_id_list):
         # Retrieves products from chosen categorie which nutrition_grade is
         # "a" or "b"
         healthy_products = Product.select_products_information(self, categorie, 'a', 'b')
@@ -180,8 +206,13 @@ aliment''')
             healthy_products_dict[healthy_products[i]['name']] = \
                 len(shared_categories)
 
-            print(f'''id des categories en commun avec {unhealthy_product}\
- pour {healthy_products[i]['name']} : {shared_categories}''')  # A supprimer
+ #            print(f'''id des categories en commun avec {unhealthy_product}\
+ # pour {healthy_products[i]['name']} : {shared_categories}''')  # A supprimer
+
+        return healthy_products_dict
+
+
+    def _get_best_matches(self, healthy_products_dict):
 
         # Gets the maximum number of categories that an healthy product
         # shares with the chosen unhealthy product
@@ -198,12 +229,16 @@ aliment''')
             if number_of_shared_categories == maximum:
                 best_matches.append(name)
 
-        print(f'\nNombre maximum de catégories en commun = {maximum}')  # A supprimer
-        print(f'''\nProduits sains qui partagent {maximum} catégories avec\
- {unhealthy_product} : ''')  # A supprimer
-        for match in best_matches:
-            print(f'- {match}')
-        print('\n******************************************************\n\n\n')  # A supprimer
+ #        print(f'\nNombre maximum de catégories en commun = {maximum}')  # A supprimer
+ #        print(f'''\nProduits sains qui partagent {maximum} catégories avec\
+ # {unhealthy_product} : ''')  # A supprimer
+ #        for match in best_matches:
+ #            print(f'- {match}')
+ #        print('\n******************************************************\n\n\n')  # A supprimer
+
+        return best_matches
+
+    def _get_healthiest_match(self, best_matches):
 
         # List of best matching healthy products which nutrition_grade is 'a'
         healthiest_matches = []
@@ -228,52 +263,66 @@ aliment''')
         # ('healthiest_match')
         proposed_product = Product.select_healthiest_match_information(self,healthiest_match)
 
+        return proposed_product
+
+
+    def _get_stores(self, proposed_product):
+
         # Retrieves id of stores selling the proposed product
-        store_ids = Product_Store.select_stores_id(self, healthiest_match)
+        stores_id = Product_Store.select_stores_id(self, proposed_product[0]['name'])
 
         # List of stores selling the proposed product
-        self.stores = []
+        stores = []
 
-        for i in range(len(store_ids.all())):
-            store = Store.select(self, store_ids[i]['store_id'])
-            self.stores.append(store)
+        for i in range(len(stores_id.all())):
+            store = Store.select(self, stores_id[i]['store_id'])
+            stores.append(store)
 
-        self.stores_str = ', '.join(self.stores)
+        stores_str = ', '.join(stores)
+
+        return stores_str
+
+
+    def _display_result(self, unhealthy_product, proposed_product, stores_str):
 
         print(f'\nVoici une alternative plus saine à "{unhealthy_product}" :')
         print(f'\nNom : {(proposed_product[0]["name"])}')
         print(f'Description : {proposed_product[0]["description"]}')
-        print(f'Disponible chez : {self.stores_str}')
+        print(f'Disponible chez : {stores_str}')
 
         print(f'{proposed_product[0]["url"]}')
 
         return proposed_product
 
-    def _save_result(self, unhealthy_product, healthy_product):
+    def _save_result(self, unhealthy_product, proposed_product, stores_str):
         """ Allows the user to save the result of its query """
         print('\nSouhaitez-vous enregistrer ce résultat pour le retrouver plus\
  tard ?\n')
         print('1 - Oui, je sauvegarde')
         print('2 - Non, merci')
 
-        try:
-            backup_choice = int(input('\n'))
-            assert backup_choice in [1, 2]
-        except ValueError:
-            print('\nVeuillez saisir un nombre : 1 ou 2.')
-            self.save_result()
-        except AssertionError:
-            print(f'''\n{backup_choice} est un choix invalide. Veuillez \
-saisir 1 ou 2.''')
-            self.save_result()
-        else:
-            # Relevant information is added in History table
-            if backup_choice == 1:
-                History.insert(self, unhealthy_product, healthy_product[0]['name'], healthy_product[0]['description'], self.stores_str, healthy_product[0]['url'])
+        carry_on_4 = True
 
-                print('\nRésultat sauvegardé !')
-            elif backup_choice == 2:
-                pass
+        while carry_on_4:
+            try:
+                backup_choice = int(input('\n'))
+                assert backup_choice in [1, 2]
+            except ValueError:
+                print('\nVeuillez saisir un nombre : 1 ou 2.')
+                continue
+            except AssertionError:
+                print(f'''\n{backup_choice} est un choix invalide. Veuillez \
+saisir 1 ou 2.''')
+                continue
+            else:
+                # Relevant information is added in History table
+                if backup_choice == 1:
+                    History.insert(self, unhealthy_product, proposed_product[0]['name'], proposed_product[0]['description'], stores_str, proposed_product[0]['url'])
+
+                    print('\nRésultat sauvegardé !')
+                elif backup_choice == 2:
+                    pass
+                carry_on_4 = False
 
     def _get_saved_results(self):
         """ Allows the user to retrieve old queries """
