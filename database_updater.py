@@ -1,4 +1,4 @@
-#! /usr/bin/env phyton3
+#! /usr/bin/env python3
 # coding: utf-8
 
 """ Sets DatabaseUpdater class.
@@ -15,11 +15,11 @@ import pickle
 import sys
 
 from config import database
-from product import Product
-from categorie import Categorie
-from product_categorie import Product_Categorie
-from store import Store
-from product_store import Product_Store
+from product_manager import ProductManager
+from categorie_manager import CategorieManager
+from product_categorie_manager import ProductCategorieManager
+from store_manager import StoreManager
+from product_store_manager import ProductStoreManager
 
 # Où met-on ces 2 lignes ??
 # errors_log_db_updater = open('errors_log_db_updater.txt', 'w')  # .txt non tracké (??)
@@ -44,20 +44,23 @@ class DatabaseUpdater:  # 'Old-style class defined' ??
 
         For each
         """
-
+        self.product_manager = ProductManager()
+        self.categorie_manager = CategorieManager()
+        self.product_categorie_manager = ProductCategorieManager()
+        self.store_manager = StoreManager()
+        self.product_store_manager = ProductStoreManager()
         # Retrieves product code for each product in local database
         codes = self._get_products_codes()
 
-        # for i in range(len(codes.all())):
-        for i in range(20):
+        for i in range(len(codes.all())):
+        # for i in range(100):
             print('\n********Nouveau produit !*********')  # A supprimer !
             try:  # Attention : gérer le cas où le produit a été retiré de la base !!
                 self._get_OFF_product(codes, i)
-                local_product = \
-                    Product.select_product_information(self, self.OFF_code)
+                local_product = self.product_manager.select_product_information(self.OFF_code)
                 self._update_new_information(local_product)
                 self._update_categories_information(local_product)
-                self._update_store_information()
+                self._update_store_information(local_product)
             except KeyError as e:
                 print('Aïe, KeyError : ', e)
 
@@ -76,6 +79,9 @@ class DatabaseUpdater:  # 'Old-style class defined' ??
 
         self.OFF_code = OFF_product['code']
         self.OFF_name = OFF_product['product_name'].strip().capitalize()
+
+        print(self.OFF_name)
+
         self.OFF_description = OFF_product['generic_name'].capitalize()
         OFF_brands = (OFF_product['brands']).split(',')
         self.OFF_brand = OFF_brands[0].capitalize()
@@ -92,32 +98,31 @@ class DatabaseUpdater:  # 'Old-style class defined' ??
     def _update_new_information(self, local_product):
 
         if local_product[0]['name'] != self.OFF_name:
-            Product.update_name(self, self.OFF_name, self.OFF_code)
+            self.product_manager.update_name(self.OFF_name, self.OFF_code)
             print('"name" updated !')
         if local_product[0]['description'] != self.OFF_description:
-            Product.update_description(self, self.OFF_description, self.OFF_code)
+            self.product_manager.update_description(self.OFF_description, self.OFF_code)
             print('"description" updated !')
         if local_product[0]['brand'] != self.OFF_brand:
-            Product.update_brand(self, self.OFF_brand, self.OFF_code)
+            self.product_manager.update_brand(self.OFF_brand, self.OFF_code)
             print('"brand" updated !')
         if local_product[0]['nutrition_grade'] != self.OFF_nutrition_grade:
-            Product.update_nutrition_grade(self, self.OFF_nutrition_grade, self.OFF_code)
+            self.product_manager.update_nutrition_grade(self.OFF_nutrition_grade, self.OFF_code)
             print('"nutrition_grade" updated !')
 
     def _update_categories_information(self, local_product):
 
         local_product_categories_id, local_product_categories_list = self._make_local_product_categories_list()
+
+        print('A - Catégorie(s) enregistrée(s) en local : ', local_product_categories_list)  # A supprimer
+        print('B - Catégorie(s) récupérée(s) sur OFF : ', self.OFF_categories)  # A supprimer
+
         self._remove_obsolete_categories(local_product, local_product_categories_id, local_product_categories_list)
         self._add_new_categories(local_product_categories_list)
 
-
-        # print('A - local_product_categories_list : ', local_product_categories_list)  # A supprimer
-        # print('B - OFF_categories_list : ', OFF_categories)  # A supprimer
-
-
     def _make_local_product_categories_list(self):
 
-        local_product_categories_id = Product_Categorie.select_categories_id_based_on_product_id(self, self.OFF_code)
+        local_product_categories_id = self.product_categorie_manager.select_based_on_product_id(self.OFF_code)
 
         local_product_categories_list = []
 
@@ -125,8 +130,8 @@ class DatabaseUpdater:  # 'Old-style class defined' ??
         # print('2 - len(local_product_categories_id) : ', len(local_product_categories_id.all()))  # A supprimer
 
         for i in range(len(local_product_categories_id.all())):
-            categorie_name = Categorie.select_categorie_name_based_on_id(self, local_product_categories_id[i]['categorie_id'])
-            local_product_categories_list.append(categorie_name[0]['name'])
+            categorie_name = self.categorie_manager.select_based_on_id(local_product_categories_id[i]['categorie_id'])
+            local_product_categories_list.append(categorie_name)
 
         return local_product_categories_id, local_product_categories_list
 
@@ -134,33 +139,81 @@ class DatabaseUpdater:  # 'Old-style class defined' ??
 
         for i in range(len(local_product_categories_list)):
             if local_product_categories_list[i] not in self.OFF_categories:
-                Product_Categorie.delete(self, self.OFF_code, local_product_categories_id[i]['categorie_id'])
-                print(f'Removed corresponding line between product "{local_product[0]["name"]}" and categorie "{local_product_categories_list[i]}" from Product_Categorie table')
+                self.product_categorie_manager.delete(self.OFF_code, local_product_categories_id[i]['categorie_id'])
 
-                product_categorie = Product_Categorie.select_product_categorie_based_on_categorie_id(self, local_product_categories_id[i]['categorie_id'])
+                product_categorie = self.product_categorie_manager.select_based_on_categorie_id(local_product_categories_id[i]['categorie_id'])
                 try:
                     categorie_id = product_categorie[0]['categorie_id']
-                    print('La categorie est associée à d\'autre(s) produit(s)')
+                    print(f'La categorie {categorie_id} est associée à d\'autre(s) produit(s). On la conserve.')
                 except IndexError:
-                    print('La categorie n\'est associée à aucun autre produit')
-                    Categorie.delete(self, local_product_categories_list[i])
+                    # print(f'La categorie {categorie_id} n\'est associée à aucun autre produit. On la supprime')
+                    print('La categorie n\'est associée à aucun autre produit. On la supprime')
+                    self.categorie_manager.delete(local_product_categories_list[i])
 
     def _add_new_categories(self, local_product_categories_list):
 
         for categorie in self.OFF_categories:
             if categorie not in local_product_categories_list:
-                local_categorie = Categorie.select_categorie_name_based_on_name(self, categorie)
+                local_categorie = self.categorie_manager.select_based_on_name(categorie)
                 try:
                     local_categorie_name = local_categorie[0]['name']
-                    Product_Categorie.insert(self, local_categorie_name, self.OFF_name)
+                    self.product_categorie_manager.insert(local_categorie_name, self.OFF_name)
                 except IndexError:
                     print('La catégorie n\'existe pas')
-                    Categorie.insert(self, local_categorie_name)
-                    Product_Categorie.insert(self, local_categorie_name, self.OFF_name)
+                    self.categorie_manager.insert(categorie)
+                    self.product_categorie_manager.insert(categorie, self.OFF_name)
 
-    def _update_store_information(self):
-        pass
-        # To do !
+    def _update_store_information(self, local_product):
+        local_product_stores_id, local_product_stores_list = self._make_local_product_stores_list()
+
+        print('C - Magasin(s) enregistré(s) en local : ', local_product_stores_list)  # A supprimer
+        print('D - Magasin(s) récupéré(s) sur OFF : ', self.OFF_stores)  # A supprimer
+
+        self._remove_obsolete_stores(local_product, local_product_stores_id, local_product_stores_list)
+        self._add_new_stores(local_product_stores_list)
+
+    def _make_local_product_stores_list(self):
+
+        local_product_stores_id = self.product_store_manager.select_based_on_product_id(self.OFF_code)
+
+        local_product_stores_list = []
+
+        # print('1 - local_product_stores_id.all() : ', local_product_stores_id.all())  # A supprimer
+        # print('2 - len(local_product_stores_id) : ', len(local_product_stores_id.all()))  # A supprimer
+
+        for i in range(len(local_product_stores_id.all())):
+            store_name = self.store_manager.select_based_on_id(local_product_stores_id[i]['store_id'])
+            local_product_stores_list.append(store_name)
+
+        return local_product_stores_id, local_product_stores_list
+
+    def _remove_obsolete_stores(self, local_product, local_product_stores_id, local_product_stores_list):
+
+        for i in range(len(local_product_stores_list)):
+            if local_product_stores_list[i] not in self.OFF_stores:
+                self.product_store_manager.delete(self.OFF_code, local_product_stores_id[i]['store_id'])
+
+                product_store = self.product_store_manager.select_based_on_store_id(local_product_stores_id[i]['store_id'])
+                try:
+                    store_id = product_store[0]['store_id']
+                    print(f'Le magasin {store_id} est associé à d\'autre(s) produit(s). On le conserve.')
+                except IndexError:
+                    # print(f'Le magasin {store_id} n\'est associé à aucun autre produit. On la supprime')
+                    print('Le magasin n\'est associé à aucun autre produit. On le supprime')
+                    self.store_manager.delete(local_product_stores_list[i])
+
+    def _add_new_stores(self, local_product_stores_list):
+
+        for store in self.OFF_stores:
+            if store not in local_product_stores_list:
+                local_store = self.store_manager.select_based_on_name(store)
+                try:
+                    local_store_name = local_store[0]['name']
+                    self.product_store_manager.insert(local_store_name, self.OFF_name)
+                except IndexError:
+                    print('Le magasin n\'existe pas')
+                    self.store_manager.insert(store)
+                    self.product_store_manager.insert(store, self.OFF_name)
 
     def _save_update_date(self):
         last_update_date = time()
