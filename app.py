@@ -1,4 +1,4 @@
-#! /usr/bin/env phyton3
+#! /usr/bin/env python3
 # coding: utf-8
 
 """ Sets App class.
@@ -7,16 +7,42 @@ App class manages interactions with the user.
 
 """
 
-import argparse
+from threading import Thread
+
+import os  # A affiner
+import pickle  # A affiner
+import time  # A affiner
+import argparse  # A affiner
 
 from config import database, tag_categories
 from database_creator import DatabaseCreator
 from database_filler import DatabaseFiller
-from product import Product
-from product_categorie import Product_Categorie
-from product_store import Product_Store
-from store import Store
-from history import History
+from database_updater import DatabaseUpdater
+from product_manager import ProductManager
+from product_categorie_manager import ProductCategorieManager
+from store_manager import StoreManager
+from product_store_manager import ProductStoreManager
+from history_manager import HistoryManager
+
+
+class UpdateThread(Thread):
+    """ Sets Update_thread class.
+
+    Consists of 2 methods :
+        - __init__()
+        - run()
+
+    """
+    def __init__(self):
+        """ UpdateThread constructor.
+
+        Sets 'is_updating' variable
+        """
+        Thread.__init__(self)
+        self.is_updating = True
+
+    def run(self):
+        DatabaseUpdater()
 
 
 class App:
@@ -48,7 +74,35 @@ class App:
             DatabaseFiller()
         # database.query('USE healthier_food')
 
+        update_thread = UpdateThread()
+        delta_jour = self._get_delay_since_last_update()
+        if delta_jour < 7:  # A modifier !
+            update_thread.start()
+
+        self.product_manager = ProductManager()
+        self.product_categorie_manager = ProductCategorieManager()
+        self.store_manager = StoreManager()
+        self.product_store_manager = ProductStoreManager()
+        self.history_manager = HistoryManager()
+
         self._run()
+
+        if update_thread.is_updating:
+            update_thread.join()
+
+    def _get_delay_since_last_update(self):
+        if os.path.exists('last_update'):
+            with open('last_update', "rb") as f:
+                my_depickler = pickle.Unpickler(f)
+                last_update_date = my_depickler.load()
+
+            delta_secondes = time.time() - last_update_date
+            delta_jour = delta_secondes / (60*60*24)
+
+            print('Nombre de secondes écoulées depuis la dernière mise à jour : ', delta_secondes)  # A supprimer
+            print('Nombre de jours écoulés depuis la dernière mise à jour : ', delta_jour)  # A supprimer
+
+        return delta_jour
 
     def _run(self):
         """ Manages app running.
@@ -131,7 +185,7 @@ aliment''')
         """ Retrieves unhealthy products from chosen categorie in local
         database, displays 10 of them and returns the chosen one.
         Return selected_unhealthy_product """
-        unhealthy_products = Product.select_products_information(self, categorie, 'd', 'e')
+        unhealthy_products = self.product_manager.select_products_information(categorie, 'd', 'e')
 
         carry_on_3 = True
 
@@ -165,7 +219,7 @@ aliment''')
     def _get_unhealthy_product_categories_id(self, unhealthy_product):
         # Retrieves id of categories to which belongs the chosen
         # unhealthy product
-        unhealthy_product_categories_id = Product_Categorie.select_categories_id_based_on_product_name(self, unhealthy_product)
+        unhealthy_product_categories_id = self.product_categorie_manager.select_based_on_product_name(unhealthy_product)
 
         unhealthy_product_categories_id_list = []
         for i in range(len(unhealthy_product_categories_id.all())):
@@ -180,7 +234,7 @@ aliment''')
     def _get_healthy_products(self, categorie, unhealthy_product_categories_id_list):
         # Retrieves products from chosen categorie which nutrition_grade is
         # "a" or "b"
-        healthy_products = Product.select_products_information(self, categorie, 'a', 'b')
+        healthy_products = self.product_manager.select_products_information(categorie, 'a', 'b')
 
         # Dictionnary {name of healthy product : number of categories it
         # shares with chosen unhealthy_product}
@@ -188,7 +242,7 @@ aliment''')
 
         for i in range(len(healthy_products.all())):
             # For each healthy product, retrieves categories ids
-            healthy_product_categories_ids = Product_Categorie.select_categories_id_based_on_product_name(self, healthy_products[i]['name'])
+            healthy_product_categories_ids = self.product_categorie_manager.select_based_on_product_name(healthy_products[i]['name'])
 
             # For each healthy product, makes a list of categories
             # it shares with chosen unhealthy product
@@ -210,7 +264,6 @@ aliment''')
  # pour {healthy_products[i]['name']} : {shared_categories}''')  # A supprimer
 
         return healthy_products_dict
-
 
     def _get_best_matches(self, healthy_products_dict):
 
@@ -244,7 +297,7 @@ aliment''')
         healthiest_matches = []
 
         for match in best_matches:
-            healthy_match = Product.select_match_information(self, match)
+            healthy_match = self.product_manager.select_match_information(match)
 
             try:
                 healthiest_matches.append(healthy_match[0]['name'])
@@ -261,27 +314,25 @@ aliment''')
 
         # Retrieves information for the product proposed to the user
         # ('healthiest_match')
-        proposed_product = Product.select_healthiest_match_information(self,healthiest_match)
+        proposed_product = self.product_manager.select_healthiest_match_information(healthiest_match)
 
         return proposed_product
-
 
     def _get_stores(self, proposed_product):
 
         # Retrieves id of stores selling the proposed product
-        stores_id = Product_Store.select_stores_id(self, proposed_product[0]['name'])
+        stores_id = self.product_store_manager.select_based_on_product_name(proposed_product[0]['name'])
 
         # List of stores selling the proposed product
         stores = []
 
         for i in range(len(stores_id.all())):
-            store = Store.select(self, stores_id[i]['store_id'])
+            store = self.store_manager.select_based_on_id(stores_id[i]['store_id'])
             stores.append(store)
 
         stores_str = ', '.join(stores)
 
         return stores_str
-
 
     def _display_result(self, unhealthy_product, proposed_product, stores_str):
 
@@ -317,7 +368,7 @@ saisir 1 ou 2.''')
             else:
                 # Relevant information is added in History table
                 if backup_choice == 1:
-                    History.insert(self, unhealthy_product, proposed_product[0]['name'], proposed_product[0]['description'], stores_str, proposed_product[0]['url'])
+                    self.history_manager.insert(unhealthy_product, proposed_product[0]['name'], proposed_product[0]['description'], stores_str, proposed_product[0]['url'])
 
                     print('\nRésultat sauvegardé !')
                 elif backup_choice == 2:
@@ -326,7 +377,7 @@ saisir 1 ou 2.''')
 
     def _get_saved_results(self):
         """ Allows the user to retrieve old queries """
-        saved_results = History.select(self)
+        saved_results = self.history_manager.select()
 
         print('\nVoici les résultats de vos dernières recherches :')
 
