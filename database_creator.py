@@ -1,4 +1,4 @@
-#! /usr/bin/env phyton3
+#! /usr/bin/env python3
 # coding: utf-8
 
 """ Sets DatabaseCreator class.

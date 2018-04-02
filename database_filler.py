@@ -1,4 +1,4 @@
-#! /usr/bin/env phyton3
+#! /usr/bin/env python3
 # coding: utf-8
 
 """ Sets DatabaseFiller class.
@@ -13,16 +13,16 @@ from requests import get
 import sys
 
 from config import database, db_name, nutrition_grades, tag_categories
-from product import Product
-from categorie import Categorie
-from product_categorie import Product_Categorie
-from store import Store
-from product_store import Product_Store
+from product_manager import ProductManager
+from categorie_manager import CategorieManager
+from product_categorie_manager import ProductCategorieManager
+from store_manager import StoreManager
+from product_store_manager import ProductStoreManager
 
 
 # Où met-on ces 2 lignes ??
-# errors_log = open('errors_log.txt', 'w')  # .txt non tracké (??)
-# sys.stderr = errors_log
+# errors_log_db_filler = open('errors_log_db_filler.txt', 'w')  # .txt non tracké (??)
+# sys.stderr = errors_log_db_filler
 
 
 class DatabaseFiller:  # 'Old-style class defined' ??
@@ -32,7 +32,6 @@ class DatabaseFiller:  # 'Old-style class defined' ??
         - __init__()
         - _get_products()
         - _fill_db()
-
 
     """
     def __init__(self):
@@ -55,7 +54,7 @@ class DatabaseFiller:  # 'Old-style class defined' ??
             'action': 'process',
             'json': 1,
             'countries': 'France',
-            'page_size': 20,
+            'page_size': 100,
             'page': 1,
             'tagtype_0': 'categories',
             'tag_contains_0': 'contains',
@@ -104,13 +103,13 @@ class DatabaseFiller:  # 'Old-style class defined' ??
             # database
             if all([self.code, self.name, self.description, self.brand, self.url,
                     self.nutrition_grade, self.categories[0], self.stores[0]]):
-                Product.insert(self, self.code, self.name, self.description, self.brand, self.url, self.nutrition_grade)
+                ProductManager.insert(self, self.code, self.name, self.description, self.brand, self.url, self.nutrition_grade)
                 for categorie in self.categories:
-                    Categorie.insert(self, categorie)
-                    Product_Categorie.insert(self, categorie, self.name)
+                    CategorieManager.insert(self, categorie)
+                    ProductCategorieManager.insert(self, categorie, self.name)
                 for store in self.stores:
-                    Store.insert(self, store)
-                    Product_Store.insert(self, store, self.name)
+                    StoreManager.insert(self, store)
+                    ProductStoreManager.insert(self, store, self.name)
 
 def main():
     DatabaseFiller()
