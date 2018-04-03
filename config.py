@@ -5,16 +5,16 @@
 
 from records import Database
 
-import datetime
-
 from params import MYSQL_ID, MYSQL_PW
 
-
+# import datetime
 # db_name = "healthier_food_" + str(datetime.datetime.now())
 # Problème de droits d'accès à la base !
 db_name = "healthier_food"
 
-# database = Database(f'mysql+pymysql://{MYSQL_ID}:{MYSQL_PW}@localhost/?charset=utf8')
+# connexion = Database(f'mysql+pymysql://{MYSQL_ID}:\
+# {MYSQL_PW}@localhost/?charset=utf8')
+
 database = Database(f'''mysql+pymysql://{MYSQL_ID}:\
 {MYSQL_PW}@localhost/{db_name}?charset=utf8''')
 
