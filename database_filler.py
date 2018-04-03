@@ -12,7 +12,7 @@ from requests import get
 
 import sys
 
-from config import database, db_name, nutrition_grades, tag_categories
+from config import nutrition_grades, tag_categories
 from product_manager import ProductManager
 from categorie_manager import CategorieManager
 from product_categorie_manager import ProductCategorieManager
