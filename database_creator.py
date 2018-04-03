@@ -8,6 +8,7 @@ DatabaseCreator class creates local database 'healthier_food'.
 """
 
 from config import database, db_name
+# from config import connexion
 
 
 class DatabaseCreator:
@@ -36,7 +37,7 @@ class DatabaseCreator:
 # GRANT ALL PRIVILEGES ON healthier_food.* TO 'lauredougui'@'localhost';
 
         # database.query(f'DROP DATABASE IF EXISTS {db_name}')
-        # database.query(f'CREATE DATABASE {db_name} CHARACTER SET "utf8"')
+        # connexion.query(f'CREATE DATABASE {db_name} CHARACTER SET "utf8"')
         database.query(f"""CREATE DATABASE IF NOT EXISTS {db_name}
                        CHARACTER SET 'utf8'""")
         database.query(f'USE {db_name}')
