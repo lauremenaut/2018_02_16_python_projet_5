@@ -7,8 +7,13 @@ DatabaseCreator class creates local database 'healthier_food'.
 
 """
 
-from config import database, db_name
-# from config import connexion
+# from records import Database
+
+# import datetime
+
+
+from config import database
+# from config import connexion, db_name
 
 
 class DatabaseCreator:
@@ -35,12 +40,30 @@ class DatabaseCreator:
 # Avant de pouvoir créer la base, il faut se connecter via root pour donner
 # les droits à l'utilisateur 'lauredougui' sur cette nouvelle base.
 # GRANT ALL PRIVILEGES ON healthier_food.* TO 'lauredougui'@'localhost';
+        # MYSQL_ID = "lauredougui"
+        # MYSQL_PW = "mysql"
 
-        # database.query(f'DROP DATABASE IF EXISTS {db_name}')
+        # db_name_to_clean = "healthier_food_" + str(datetime.datetime.now())
+
+        # db_name = ""
+
+        # for char in db_name_to_clean:
+        #     if char in ["-", " ", ".", ":"]:
+        #         char = "_"
+        #     db_name = db_name + char
+
+        # print("db_name : ", db_name)
+
+        # connexion = Database(f'mysql+pymysql://{MYSQL_ID}:{MYSQL_PW}@localhost/?charset=utf8')
+
+
         # connexion.query(f'CREATE DATABASE {db_name} CHARACTER SET "utf8"')
-        database.query(f"""CREATE DATABASE IF NOT EXISTS {db_name}
-                       CHARACTER SET 'utf8'""")
-        database.query(f'USE {db_name}')
+        # database.query(f"""CREATE DATABASE IF NOT EXISTS {db_name}
+        #                CHARACTER SET 'utf8'""")
+
+        # database = Database(f'''mysql+pymysql://{MYSQL_ID}:{MYSQL_PW}@localhost/{db_name}?charset=utf8''')
+
+        # database.query(f'USE {db_name}')
 
     def _drop_foreign_keys(self):
         """ Deletes foreign keys if exist """
