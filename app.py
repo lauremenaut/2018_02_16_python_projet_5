@@ -7,7 +7,8 @@ UpdateThread class sets a thread allowing to launch database update
 while user runs the application.
 
 App class manages the application running : interactions with the user,
-healthy product choice, launching update of local database if necessary.
+healthy product choice, launching creation or update of local database
+if required.
 
 """
 
@@ -18,7 +19,7 @@ from pickle import Unpickler
 from time import time
 from argparse import ArgumentParser
 
-from config import database, tag_categories
+from config import tag_categories
 from database_creator import DatabaseCreator
 from database_filler import DatabaseFiller
 from database_updater import DatabaseUpdater
@@ -72,8 +73,10 @@ class App:
     def __init__(self, db_create, db_update):
         """ App constructor.
 
-        Updates local database if specified by user with parsed 'update'
-        argument.
+        Creates local database if specified by user with 'db_create'
+        parsed argument.
+        Updates local database if specified by user with 'db_update'
+        parsed argument.
         Checks if last local database update is older than 7 days, and
         launch update if needed.
         Creates instances of needed 'Table Manager' classes
@@ -95,6 +98,7 @@ class App:
         if delta_jour > 7:
             update_thread.start()
 
+        # Creates instances of table manager classes
         self.product_manager = ProductManager()
         self.product_categorie_manager = ProductCategorieManager()
         self.store_manager = StoreManager()
@@ -108,7 +112,7 @@ class App:
 
     def _get_delay_since_last_update(self):
         """ Retrieves last update date, calculates and returns the delay
-        (number of days)
+        until now (number of days)
 
         """
         if path.exists('last_update'):
@@ -129,9 +133,9 @@ class App:
 
 
         """
-        carry_on_1 = True
+        carry_on = True
 
-        while carry_on_1:
+        while carry_on:
             self._display_menu()
             try:
                 starting_choice = int(input('\n'))
@@ -166,7 +170,7 @@ saisir 1, 2 ou 3.''')
                     self._get_saved_results()
                 elif starting_choice == 3:
                     print('\nMerci de votre visite !\n')
-                    carry_on_1 = False
+                    carry_on = False
 
     def _display_menu(self):
         """ Displays 3 choices for the user :
@@ -187,9 +191,9 @@ aliment''')
         chosen by user.
 
         """
-        carry_on_2 = True
+        carry_on = True
 
-        while carry_on_2:
+        while carry_on:
             print('\nVeuillez saisir le numéro correspondant à la categorie de \
 votre choix :\n')
             for categorie in tag_categories:
@@ -199,7 +203,7 @@ votre choix :\n')
             try:
                 categorie_choice = int(input('\n'))
                 assert categorie_choice in range(1, len(tag_categories) + 1)
-                carry_on_2 = False
+                carry_on = False
             except ValueError:
                 print('Saisie invalide.')
                 continue
@@ -218,9 +222,9 @@ votre choix :\n')
         unhealthy_products = self.product_manager.select_products_information(
             categorie, 'd', 'e')
 
-        carry_on_3 = True
+        carry_on = True
 
-        while carry_on_3:
+        while carry_on:
             print(f'''\nVeuillez saisir le numéro d'un produit de la categorie \
 {categorie} :\n''')
 
@@ -232,7 +236,7 @@ votre choix :\n')
                 unhealthy_product_choice = int(input('\n'))
                 assert unhealthy_product_choice in range(
                     1, len(unhealthy_products.all()) + 1)
-                carry_on_3 = False
+                carry_on = False
             except ValueError:
                 print('Saisie invalide')
                 continue
@@ -390,9 +394,9 @@ votre choix :\n')
         print('1 - Oui, je sauvegarde')
         print('2 - Non, merci')
 
-        carry_on_4 = True
+        carry_on = True
 
-        while carry_on_4:
+        while carry_on:
             try:
                 backup_choice = int(input('\n'))
                 assert backup_choice in [1, 2]
@@ -416,7 +420,7 @@ saisir 1 ou 2.''')
                     print('\nRésultat sauvegardé !')
                 elif backup_choice == 2:
                     pass
-                carry_on_4 = False
+                carry_on = False
 
     def _get_saved_results(self):
         """ Displays 10 last saved results """
@@ -434,7 +438,10 @@ saisir 1 ou 2.''')
 
 
 def parse_arguments():
-    """ Returns an argument parser with an 'update' argument. """
+    """ Returns an argument parser with 'db_create' & 'db_update'
+    arguments.
+
+    """
     parser = ArgumentParser()
     parser.add_argument('-c', '--db_create', action='store_true',
                         help='database creation')
