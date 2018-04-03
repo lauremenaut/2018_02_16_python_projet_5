@@ -15,7 +15,7 @@ When it is done, please follow these few more steps :
 - Activate the virtual environment : 'source env/bin/activate'
 - Install the dependancies : 'pip install -r requirements.txt'
 - Open 'params.py.dist' file, replace identifier and password as required and rename file as 'params.py' (i.e. just remove '.dist' extension)
-- At first use, execute 'app.py' file with '--db_create' argument :
+- At first use, execute 'app.py' file with '--db_create' argument (this will create a local MySQL database and fill it with 'OpenFoodFacts' data) :
     - 'py -3 app.py --db_create' (for Windows)
     - 'python3 app.py --db_create' (for other os)
 - For further uses, forgot '--db_create' argument, just execute 'app.py'
