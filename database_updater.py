@@ -11,10 +11,9 @@ DatabaseUpdater class updates information of each product one-by-one of
 from requests import get
 
 from time import time
-import pickle
 import sys
 
-from config import database
+from database import database
 from product_manager import ProductManager
 from categorie_manager import CategorieManager
 from product_categorie_manager import ProductCategorieManager
@@ -64,7 +63,7 @@ class DatabaseUpdater:  # 'Old-style class defined' ??
             except KeyError as e:
                 print('Aïe, KeyError : ', e)
 
-        # self._save_update_date()
+        self._save_update_date()
 
     def _get_products_codes(self):
 
@@ -216,11 +215,10 @@ class DatabaseUpdater:  # 'Old-style class defined' ??
                     self.product_store_manager.insert(store, self.OFF_name)
 
     def _save_update_date(self):
-        last_update_date = time()
+        last_update_date = str(time())
 
-        with open('last_update', "wb") as f:
-            my_pickler = pickle.Pickler(f)
-            my_pickler.dump(last_update_date)
+        with open('last_update.txt', "w") as f:
+            f.write(last_update_date)
 
 
 def main():
