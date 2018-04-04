@@ -4,11 +4,15 @@
 """ File to be updated by the user with personal data before first use
 of the application """
 
-# Replace "id" by your own mysql identifier and "pw" by your own mysql
-# password :
+# Replace "id" by mysql user identifier and "pw" by mysql user password:
 
 MYSQL_ID = "id"
 MYSQL_PW = "pw"
 
+# Please be sure that user is granted with privileges allowing him to
+# create a database and interact with it.
+# If needed, run for exemple this MySQL query (logged as 'root'):
+# GRANT ALL ON *.* TO 'MYSQL_ID'@'localhost' IDENTIFIED BY 'MYSQL_PW';
+
 # Finally, rename this file removing the ".dist" extension, so as to
-# keep "params.py" as file name
+# keep "params.py" as file name.
