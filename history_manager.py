@@ -7,7 +7,7 @@ HistoryManager class ...
 
 """
 
-from config import database
+from database import database
 
 
 class HistoryManager:
