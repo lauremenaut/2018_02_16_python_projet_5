@@ -13,14 +13,13 @@ if required.
 """
 
 from threading import Thread
-
 from os import path
-from pickle import Unpickler
 from time import time
 from argparse import ArgumentParser
 
 from config import tag_categories
 from database_creator import DatabaseCreator
+from tables_creator import TablesCreator
 from database_filler import DatabaseFiller
 from database_updater import DatabaseUpdater
 from product_manager import ProductManager
@@ -87,6 +86,7 @@ class App:
 
         if db_create:
             DatabaseCreator()
+            TablesCreator()
             DatabaseFiller()
 
         if db_update:
@@ -115,16 +115,18 @@ class App:
         until now (number of days)
 
         """
-        if path.exists('last_update'):
-            with open('last_update', "rb") as f:
-                my_depickler = Unpickler(f)
-                last_update_date = my_depickler.load()
+        if path.exists('last_update.txt'):
+            with open('last_update.txt', "r") as f:
+                last_update_date = float(f.read())
 
             delta_secondes = time() - last_update_date
             delta_jour = delta_secondes / (60*60*24)
 
-            # print('Nombre de secondes écoulées depuis la dernière mise à jour : ', delta_secondes)  # A supprimer
-            # print('Nombre de jours écoulés depuis la dernière mise à jour : ', delta_jour)  # A supprimer
+            print('Nombre de secondes écoulées depuis la dernière mise à jour : ', delta_secondes)  # A supprimer
+            print('Nombre de jours écoulés depuis la dernière mise à jour : ', delta_jour)  # A supprimer
+
+        else:
+            delta_jour = 0
 
         return delta_jour
 
