@@ -7,7 +7,7 @@ ProductManager class ...
 
 """
 
-from config import database
+from database import database
 
 
 class ProductManager:
