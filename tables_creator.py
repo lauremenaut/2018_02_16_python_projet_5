@@ -3,7 +3,8 @@
 
 """ Sets TablesCreator class.
 
-TablesCreator class creates ...
+TablesCreator class creates empty tables and related foreign keys in
+local MySQL database.
 
 """
 
@@ -11,6 +12,7 @@ from database import database
 
 
 class TablesCreator:
+
     """ Sets TablesCreator class.
 
     Consists of 3 private methods :
@@ -19,13 +21,28 @@ class TablesCreator:
         - _create_foreign_keys()
 
     """
+
     def __init__(self):
-        """ TablesCreator constructor """
+        """ TablesCreator constructor.
+
+        Runs _create_tables() & _create_foreign_keys() methods.
+
+        """
         self._create_tables()
         self._create_foreign_keys()
 
     def _create_tables(self):
-        """ Creates empty tables """
+        """ Manages tables creation.
+
+        Creates 6 empty tables :
+        - Product
+        - Categorie
+        - Product_Categorie
+        - Store
+        - Product_Store
+        - History
+
+        """
         database.query('''CREATE TABLE Product (
                        product_id BIGINT UNSIGNED NOT NULL,
                        name VARCHAR(100) UNIQUE NOT NULL,
@@ -66,7 +83,16 @@ class TablesCreator:
                        PRIMARY KEY (history_id))''')
 
     def _create_foreign_keys(self):
-        """ Creates or recreates foreign keys """
+        """ Manages foreign keys creation.
+
+        Creates foreign keys managing many-to-many relationships
+        between :
+            - Product & Product_Categorie tables
+            - Categorie & Product_Categorie tables
+            - Product & Product_Store tables
+            - Store & Product_Store tables
+
+        """
         database.query('''ALTER TABLE Product_Categorie
                        ADD CONSTRAINT product_product_categorie_fk
                        FOREIGN KEY (product_id)
