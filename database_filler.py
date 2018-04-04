@@ -3,14 +3,12 @@
 
 """ Sets DatabaseFiller class.
 
-DatabaseFiller class fills 'healthier_food' database, connecting with Open
-Food Facts API.
+DatabaseFiller class fills local MySQL database retrieving data from
+Open Food Facts API.
 
 """
 
 from requests import get
-
-import sys
 
 from config import nutrition_grades, tag_categories
 from product_manager import ProductManager
@@ -20,12 +18,8 @@ from store_manager import StoreManager
 from product_store_manager import ProductStoreManager
 
 
-# Où met-on ces 2 lignes ??
-# errors_log_db_filler = open('errors_log_db_filler.txt', 'w')  # .txt non tracké (??)
-# sys.stderr = errors_log_db_filler
+class DatabaseFiller:
 
-
-class DatabaseFiller:  # 'Old-style class defined' ??
     """ Sets DatabaseFiller class.
 
     Consists of 3 private methods :
@@ -34,6 +28,7 @@ class DatabaseFiller:  # 'Old-style class defined' ??
         - _fill_db()
 
     """
+
     def __init__(self):
         """ DatabaseFiller constructor.
 
@@ -47,9 +42,15 @@ class DatabaseFiller:  # 'Old-style class defined' ??
                 products = self._get_products(categorie, nutrition_grade)
                 self._fill_db(products)
 
-    def _get_products(self, categorie, nutrition_grade):  # 'Method could be a function (no-self-used)' ??
-        """ Gets products from Open Food Facts API following given
-        criteria. """
+    def _get_products(self, categorie, nutrition_grade):
+        """ Return a list of dictionnaries of products information.
+
+        Connects to Open Food Facts API via get() method from requests
+        library and sends requests using given criteria for categories
+        and nutrition grades.
+        json content from response object contains products information.
+
+        """
         criteria = {
             'action': 'process',
             'json': 1,
@@ -72,12 +73,14 @@ class DatabaseFiller:  # 'Old-style class defined' ??
         products = data['products']
         return products
 
-    def _fill_db(self, products):  # 'Method could be a function (no-self-used)' ??
-        """ Contains SQL requests to fill database """
-        # database.query('SET NAMES "utf8"')
-        # database.query(f'USE {db_name}')
+    def _fill_db(self, products):
+        """ Manages database filling.
 
-        # For each product, checks if required data is available or not
+        Checks for each product whether required data is available or
+        not.
+        If so, product is added to local database.
+
+        """
         for product in products:
             try:
                 self.code = product['code']
@@ -99,11 +102,12 @@ class DatabaseFiller:  # 'Old-style class defined' ??
             except KeyError:
                 print('Missing data')
 
-            # If required data is available, product is added to local
-            # database
-            if all([self.code, self.name, self.description, self.brand, self.url,
-                    self.nutrition_grade, self.categories[0], self.stores[0]]):
-                ProductManager.insert(self, self.code, self.name, self.description, self.brand, self.url, self.nutrition_grade)
+            if all([self.code, self.name, self.description, self.brand,
+                    self.url, self.nutrition_grade, self.categories[0],
+                    self.stores[0]]):
+                ProductManager.insert(self, self.code, self.name,
+                                      self.description, self.brand,
+                                      self.url, self.nutrition_grade)
                 for categorie in self.categories:
                     CategorieManager.insert(self, categorie)
                     ProductCategorieManager.insert(self, categorie, self.name)
