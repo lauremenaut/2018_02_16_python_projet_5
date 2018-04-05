@@ -3,7 +3,8 @@
 
 """ Sets ProductManager class.
 
-ProductManager class ...
+ProductManager class sets methods containing queries to interact with
+Product table.
 
 """
 
@@ -11,6 +12,7 @@ from database import database
 
 
 class ProductManager:
+
     """ Sets ProductManager class.
 
     Consists of 9 methods :
@@ -27,8 +29,11 @@ class ProductManager:
     """
 
     def insert(self, code, name, description, brand, url, nutrition_grade):
-        """ Adds product information into Product table
-        Note : 'code' is saved as 'product_id'
+        """ Manages insertion of given information into Product table.
+
+        Adds product information (i.e. code, name, description, brand,
+        url & nutrition_grade) into Product table.
+        Note : 'code' is saved as 'product_id'.
 
         """
         database.query('''INSERT IGNORE INTO Product
@@ -46,7 +51,12 @@ class ProductManager:
                        nutrition_grade=nutrition_grade)
 
     def select_product_information(self, code):
-        """ Returns selected product information for given code (/product_id) """
+        """ Manages selection of product information.
+
+        Returns selected product information for given code
+        (product_id).
+
+        """
         product_information = \
             database.query('''SELECT Product.product_id,
                                      Product.name,
@@ -59,8 +69,10 @@ class ProductManager:
         return product_information
 
     def select_products_information(self, categorie, n_g_1, n_g_2):
-        """ Returns selected products information for given categorie & nutrition
-        grades
+        """ Manages selection of product information.
+
+        Returns selected products information for given categorie &
+        nutrition grades.
 
         """
         products_information = \
@@ -83,8 +95,10 @@ class ProductManager:
         return products_information
 
     def select_match_information(self, name):
-        """ Returns selected product name for given product name & nutrition
-        grade = 'a'
+        """ Manages selection of product information.
+
+        Returns selected product name for given product name &
+        nutrition grade = 'a'.
 
         """
         product_name = \
@@ -96,7 +110,11 @@ class ProductManager:
         return product_name
 
     def select_healthiest_match_information(self, name):
-        """ Returns selected product information for given product name """
+        """ Manages selection of product information.
+
+        Returns selected product information for given product name.
+
+        """
         product_information = \
             database.query('''SELECT Product.product_id,
                                      Product.name,
@@ -108,28 +126,44 @@ class ProductManager:
         return product_information
 
     def update_name(self, name, code):
-        """ Updates product name for given product code """
+        """ Manages product name update.
+
+        Updates product name for given product code.
+
+        """
         database.query('''UPDATE IGNORE Product
                        SET name = :name
                        WHERE Product.product_id = :code''',
                        name=name, code=code)
 
     def update_description(self, description, code):
-        """ Updates product description for given product code """
+        """ Manages product description update.
+
+        Updates product description for given product code.
+
+        """
         database.query('''UPDATE IGNORE Product
                        SET description = :description
                        WHERE Product.product_id = :code''',
                        description=description, code=code)
 
     def update_brand(self, brand, code):
-        """ Updates product brand for given product code """
+        """ Manages product brand update.
+
+        Updates product brand for given product code.
+
+        """
         database.query('''UPDATE IGNORE Product
                        SET brand = :brand
                        WHERE Product.product_id = :code''',
                        brand=brand, code=code)
 
     def update_nutrition_grade(self, nutrition_grade, code):
-        """ Updates product nutrition grade for given product code """
+        """ Manages product nutrition grade update.
+
+        Updates product nutrition grade for given product code.
+
+        """
         database.query('''UPDATE IGNORE Product
                        SET nutrition_grade = :nutrition_grade
                        WHERE Product.product_id = :code''',

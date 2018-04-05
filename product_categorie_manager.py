@@ -3,7 +3,8 @@
 
 """ Sets ProductCategorieManager class.
 
-ProductCategorieManager class ...
+ProductCategorieManager class sets methods containing queries to
+interact with ProductCategorie table.
 
 """
 
@@ -11,6 +12,7 @@ from database import database
 
 
 class ProductCategorieManager:
+
     """ Sets ProductCategorieManager class.
 
     Class consists of 5 methods :
@@ -21,10 +23,13 @@ class ProductCategorieManager:
         - delete()
 
     """
+
     def insert(self, categorie, name):
-        """ Adds Product / Categorie relationship into Product_Categorie
-        table
-        Note : Unique Key prevents duplicate entry
+        """ Manages insertion into Product_Categorie table.
+
+        Adds Product / Categorie relationship (based on given categorie
+        name and product name) into Product_Categorie table.
+        Note : Unique Key prevents duplicate entry.
 
         """
         database.query('''INSERT IGNORE INTO
@@ -37,7 +42,11 @@ class ProductCategorieManager:
         print(f'La relation {name} / {categorie} a été ajoutée dans la table Product_Categorie !')
 
     def select_based_on_product_id(self, product_id):
-        """ Returns selected categories id for given product id """
+        """ Manages selection of categories id based on product id.
+
+        Returns selected categories id for given product id.
+
+        """
         categories_id = \
             database.query('''SELECT Product_Categorie.categorie_id
                            FROM Product_Categorie
@@ -46,7 +55,11 @@ class ProductCategorieManager:
         return categories_id
 
     def select_based_on_product_name(self, product_name):
-        """ Returns selected categories id for given product name """
+        """ Manages selection of categories id based on product name.
+
+        Returns selected categories id for given product name.
+
+        """
         categories_id = \
             database.query('''SELECT Product_Categorie.categorie_id
                            FROM Product_Categorie
@@ -57,23 +70,32 @@ class ProductCategorieManager:
         return categories_id
 
     def select_based_on_categorie_id(self, categorie_id):
-        """ Returns selected categories & products id for given categorie id """
+        """  Manages selection based on categorie id.
+
+        Returns selected categories & products id for given categorie
+        id.
+
+        """
         product_categorie = \
             database.query('''SELECT Product_Categorie.categorie_id,
                                      Product_Categorie.product_id
                            FROM Product_Categorie
-                           WHERE Product_Categorie.categorie_id = :categorie_id''',
+                           WHERE Product_Categorie.categorie_id = :categorie_id
+                           ''',
                            categorie_id=categorie_id)
         return product_categorie
 
     def delete(self, product_id, categorie_id):
-        """ Deletes Product / Categorie relationship from
-        Product_Categorie table
+        """ Manages removal from Product_Categorie table.
+
+        Deletes Product / Categorie relationship from Product_Categorie
+        table.
 
         """
         database.query('''DELETE FROM Product_Categorie
                        WHERE Product_Categorie.product_id = :product_id
-                           AND Product_Categorie.categorie_id = :categorie_id''',
+                           AND Product_Categorie.categorie_id = :categorie_id
+                       ''',
                        product_id=product_id,
                        categorie_id=categorie_id)
         print(f'La relation {product_id} / {categorie_id} a été supprimée de la table Product_Categorie !')

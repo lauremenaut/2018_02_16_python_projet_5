@@ -3,7 +3,8 @@
 
 """ Sets CategorieManager class.
 
-CategorieManager class ...
+CategorieManager class sets methods containing queries to interact with
+CategorieManager table.
 
 """
 
@@ -11,6 +12,7 @@ from database import database
 
 
 class CategorieManager:
+
     """ Sets CategorieManager class.
 
     Class consists of 4 methods :
@@ -20,10 +22,13 @@ class CategorieManager:
         - delete()
 
     """
+
     def insert(self, categorie):
-        """ Adds categorie name into Categorie table
+        """ Manages insertion of given categorie into Categorie table.
+
+        Adds categorie name into Categorie table.
         Note : Unique Key on categorie name column prevents duplicate
-        entry
+        entry.
 
         """
         database.query('''INSERT IGNORE INTO Categorie (name)
@@ -32,7 +37,11 @@ class CategorieManager:
         print(f'La categorie "{categorie}" a été ajoutée à la table Catégorie !')
 
     def select_based_on_id(self, categorie_id):
-        """ Returns selected categorie name for given categorie_id """
+        """ Manages selection of categorie name.
+
+        Returns selected categorie name based on given categorie id.
+
+        """
         categorie = \
             database.query('''SELECT Categorie.name
                            FROM Categorie
@@ -41,8 +50,10 @@ class CategorieManager:
         return categorie[0]['name']
 
     def select_based_on_name(self, categorie):
-        """ Returns selected categorie information for given categorie
-        name
+        """ Manages selection of categorie name and id.
+
+        Returns selected categorie information based on given categorie
+        name.
 
         """
         categorie = \
@@ -54,7 +65,12 @@ class CategorieManager:
         return categorie
 
     def delete(self, categorie):
-        """ Deletes categorie from Categorie table """
+        """ Manages categorie removal.
+
+        Deletes categorie from Categorie table based on given categorie
+        name.
+
+        """
         database.query('''DELETE FROM Categorie
                        WHERE Categorie.name = :categorie''',
                        categorie=categorie)

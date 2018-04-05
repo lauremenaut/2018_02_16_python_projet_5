@@ -3,7 +3,8 @@
 
 """ Sets HistoryManager class.
 
-HistoryManager class ...
+HistoryManager class sets methods containing queries to interact with
+History table.
 
 """
 
@@ -11,6 +12,7 @@ from database import database
 
 
 class HistoryManager:
+
     """ Sets HistoryManager class.
 
     Class consists of 2 methods :
@@ -18,9 +20,12 @@ class HistoryManager:
         - select()
 
     """
+
     def insert(self, unhealthy_product, name, description, stores, url):
-        """ Adds query information (= unhealthy and healthy product
-        information) into History table
+        """ Manages insertion of given information into History table.
+
+        Adds query information (= unhealthy and healthy product
+        information) into History table.
 
         """
         database.query('''INSERT INTO History
@@ -38,8 +43,10 @@ class HistoryManager:
                        url=url)
 
     def select(self):
-        """ Returns selected query information (= unhealthy and healthy
-        product information) from History table
+        """ Manages selection of information.
+
+        Returns selected query information (= unhealthy and healthy
+        product information) from History table.
 
         """
         last_results = database.query('''SELECT *

@@ -3,7 +3,8 @@
 
 """ Sets StoreManager class.
 
-StoreManager class ...
+StoreManager class sets methods containing queries to interact with
+Store table.
 
 """
 
@@ -11,18 +12,22 @@ from database import database
 
 
 class StoreManager:
+
     """ Sets StoreManager class.
 
-    Class consists of 4 methods :
+    Consists of 4 methods :
         - insert()
         - select_store_based_on_id()
         - select_store_based_on_name()
         - delete()
 
     """
+
     def insert(self, store):
-        """ Adds store name into Store table
-        Note : Unique Key on store name column prevents duplicate entry
+        """ Manages insertion of given store into Store table.
+
+        Adds store name into Store table.
+        Note : Unique Key on store name column prevents duplicate entry.
 
         """
         database.query('''INSERT IGNORE INTO Store (name)
@@ -30,7 +35,11 @@ class StoreManager:
         print(f'Le magasin "{store}" a été ajouté à la table Store !')
 
     def select_based_on_id(self, store_id):
-        """ Returns selected store name for given store_id """
+        """ Manages selection of store name.
+
+        Returns selected store name based on given store id.
+
+        """
         store = database.query('''SELECT Store.name
                                FROM Store
                                WHERE Store.store_id = :store_id''',
@@ -38,7 +47,11 @@ class StoreManager:
         return store[0]['name']
 
     def select_based_on_name(self, store):
-        """ Returns selected store information for given store name """
+        """ Manages selection of store name and id.
+
+        Returns selected store information based on given store name.
+
+        """
         store = \
             database.query('''SELECT store.name,
                                      store.store_id
@@ -48,7 +61,11 @@ class StoreManager:
         return store
 
     def delete(self, store):
-        """ Deletes store from Store table """
+        """ Manages store removal.
+
+        Deletes store from Store table based on given store name.
+
+        """
         database.query('''DELETE FROM store
                        WHERE store.name = :store''',
                        store=store)

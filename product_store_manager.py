@@ -3,7 +3,8 @@
 
 """ Sets ProductStoreManager class.
 
-ProductStoreManager class ...
+ProductStoreManager class sets methods containing queries to interact
+with Product_Store table.
 
 """
 
@@ -11,9 +12,10 @@ from database import database
 
 
 class ProductStoreManager:
+
     """ Sets ProductStoreManager class.
 
-    Class consists of 5 methods :
+    Consists of 5 methods :
         - insert()
         - select_based_on_product_id()
         - select_based_on_product_name()
@@ -21,10 +23,13 @@ class ProductStoreManager:
         - delete()
 
     """
+
     def insert(self, store, name):
-        """ Adds Product / Store relationship into Product_Store
-        table
-        Note : Unique Key prevents duplicate entry
+        """ Manages insertion into Product_Store table.
+
+        Adds Product / Store relationship (based on given store name and
+        product name) into Product_Store table.
+        Note : Unique Key prevents duplicate entry.
 
         """
         database.query('''INSERT IGNORE INTO
@@ -37,7 +42,11 @@ class ProductStoreManager:
         print(f'La relation {name} / {store} a été ajoutée dans la table Product_Store !')
 
     def select_based_on_product_id(self, product_id):
-        """ Returns selected stores id for given product id """
+        """ Manages selection of stores id based on product id.
+
+        Returns selected stores id for given product id.
+
+        """
         stores_id = \
             database.query('''SELECT Product_store.store_id
                            FROM Product_store
@@ -46,7 +55,11 @@ class ProductStoreManager:
         return stores_id
 
     def select_based_on_product_name(self, product_name):
-        """ Returns selected stores id for given product name """
+        """ Manages selection of stores id based on product name.
+
+        Returns selected stores id for given product name.
+
+        """
         stores_id = database.query('''SELECT Product_Store.store_id
                                    FROM Product_Store
                                    JOIN Product
@@ -57,7 +70,11 @@ class ProductStoreManager:
         return stores_id
 
     def select_based_on_store_id(self, store_id):
-        """ Returns selected stores & products id for given store id """
+        """  Manages selection based on store id.
+
+        Returns selected stores & products id for given store id.
+
+        """
         product_store = \
             database.query('''SELECT Product_store.store_id,
                                      Product_store.product_id
@@ -67,8 +84,9 @@ class ProductStoreManager:
         return product_store
 
     def delete(self, product_id, store_id):
-        """ Deletes Product / Store relationship from
-        Product_Store table
+        """ Manages removal from Product_Store table.
+
+        Deletes Product / Store relationship from Product_Store table.
 
         """
         database.query('''DELETE FROM Product_store
