@@ -7,15 +7,16 @@ UpdateThread class sets a thread allowing to launch database update
 while user runs the application.
 
 App class manages the application running : interactions with the user,
-healthy product choice, launching creation or update of local database
-if required.
+healthy product choice, creation and update of local database when
+required.
 
 """
 
-from threading import Thread
-from os import path
-from time import time
 from argparse import ArgumentParser
+from os import path
+from sys import stderr
+from threading import Thread
+from time import time
 
 from config import tag_categories
 from database_creator import DatabaseCreator
@@ -29,7 +30,13 @@ from product_store_manager import ProductStoreManager
 from history_manager import HistoryManager
 
 
+# Où met-on ces 2 lignes ??
+with open('errors_log.txt', 'w') as f:
+    stderr = f
+
+
 class UpdateThread(Thread):
+
     """ Sets UpdateThread class.
 
     Consists of 2 methods :
@@ -37,6 +44,7 @@ class UpdateThread(Thread):
         - run()
 
     """
+
     def __init__(self):
         """ UpdateThread constructor."""
         Thread.__init__(self)
@@ -52,10 +60,12 @@ class UpdateThread(Thread):
 
 
 class App:
+
     """ Sets App class.
 
-    Consists of 12 methods :
+    Consists of 14 private methods :
         - __init__()
+        - _run()
         - _display_menu()
         - _choose_categorie()
         - _choose_unhealthy_product()
@@ -67,35 +77,32 @@ class App:
         - _display_result()
         - _save_result()
         - _get_saved_results()
+        - _get_delay_since_last_update()
 
     """
+
     def __init__(self, db_create, db_update):
         """ App constructor.
 
         Creates local database if specified by user with 'db_create'
         parsed argument.
-        Updates local database if specified by user with 'db_update'
-        parsed argument.
-        Checks if last local database update is older than 7 days, and
-        launch update if needed.
-        Creates instances of needed 'Table Manager' classes
-        Runs the interaction with the user
+        Updates local database if last local database update is older
+        than 7 days or if specified by user with 'db_update' parsed
+        argument.
+        Creates instances of needed table manager classes
+        Manages the application running
 
         """
-        # database.query('USE healthier_food')
-
         if db_create:
             DatabaseCreator()
             TablesCreator()
             DatabaseFiller()
 
-        if db_update:
-            DatabaseUpdater()
-
         update_thread = UpdateThread()
         update_thread.is_updating = False
         delta_jour = self._get_delay_since_last_update()
-        if delta_jour > 7:
+
+        if delta_jour > 7 or db_update:
             update_thread.start()
 
         # Creates instances of table manager classes
@@ -110,29 +117,12 @@ class App:
         if update_thread.is_updating:
             update_thread.join()
 
-    def _get_delay_since_last_update(self):
-        """ Retrieves last update date, calculates and returns the delay
-        until now (number of days)
-
-        """
-        if path.exists('last_update.txt'):
-            with open('last_update.txt', "r") as f:
-                last_update_date = float(f.read())
-
-            delta_secondes = time() - last_update_date
-            delta_jour = delta_secondes / (60*60*24)
-
-            print('Nombre de secondes écoulées depuis la dernière mise à jour : ', delta_secondes)  # A supprimer
-            print('Nombre de jours écoulés depuis la dernière mise à jour : ', delta_jour)  # A supprimer
-
-        else:
-            delta_jour = 0
-
-        return delta_jour
-
     def _run(self):
-        """ Manages app running.
+        """ Manages application running :
 
+        - user interactions
+        - healthy product choice
+        - results back up
 
         """
         carry_on = True
@@ -217,7 +207,7 @@ votre choix :\n')
         return selected_categorie
 
     def _choose_unhealthy_product(self, categorie):
-        """ Displays 10 unhealthy products of chosen categorie from local
+        """ Displays 10 unhealthy products of given categorie from local
         database and returns the one chosen by user.
 
         """
@@ -230,9 +220,12 @@ votre choix :\n')
             print(f'''\nVeuillez saisir le numéro d'un produit de la categorie \
 {categorie} :\n''')
 
-            for i in range(len(unhealthy_products.all())):
-                print(f'{i + 1} - \
+            for i in range(10):
+                try:
+                    print(f'{i + 1} - \
 {unhealthy_products[i]["name"].capitalize()}')
+                except IndexError:
+                    pass
 
             try:
                 unhealthy_product_choice = int(input('\n'))
@@ -251,7 +244,7 @@ votre choix :\n')
         return selected_unhealthy_product
 
     def _get_unhealthy_product_categories_id(self, unhealthy_product):
-        """ Returns a list of categories id to which belongs the chosen
+        """ Returns a list of categories id to which belongs the given
         unhealthy product
 
         """
@@ -268,10 +261,10 @@ votre choix :\n')
     def _get_healthy_products(self, categorie,
                               unhealthy_product_categories_id_list):
         """ Returns a dictionnary of healthy products (= products of the
-        chosen categorie which nutrition grade is 'a' or 'b') :
-          - key is name of healthy product
-          - value is number of categories this healthy product shares
-        with chosen unhealthy product
+        given categorie which nutrition grade is 'a' or 'b') :
+          - key is the name of healthy product
+          - value is the number of categories that this healthy product
+        shares with given unhealthy product
 
         """
         healthy_products = self.product_manager.select_products_information(
@@ -297,15 +290,17 @@ votre choix :\n')
             except IndexError:
                 pass
 
-            # Fills the dict with {product name : number of shared categories}
+            # Fills the dictionnary with {product name : number of
+            # shared categories}
             healthy_products_dict[healthy_products[i]['name']] = \
                 len(shared_categories)
 
         return healthy_products_dict
 
     def _get_best_matches(self, healthy_products_dict):
-        """ Returns a list of names of products that share the maximum
-        number of categories with the chosen unhealthy product
+        """ Returns a list of names of healthy products (selected from
+        given 'healthy_products_dict') that share the maximum number of
+        categories with the previously chosen unhealthy product
 
         """
         # Gets the maximum number of categories that an healthy product
@@ -323,12 +318,14 @@ votre choix :\n')
         return best_matches
 
     def _get_healthiest_match(self, best_matches):
-        """ Returns a product object that shares the maximum number of
+        """ Returns an object containing information of a product
+        (selected from 'best_matches') that shares the maximum number of
         categories with the chosen unhealthy product and whose nutrition
         grade is as high as possible
 
         """
-        # List of best matching healthy products which nutrition grade is 'a'
+        # List of best matching healthy products which nutrition grade
+        # is 'a'
         healthiest_matches = []
 
         for match in best_matches:
@@ -377,7 +374,12 @@ votre choix :\n')
         return stores_str
 
     def _display_result(self, unhealthy_product, proposed_product, stores_str):
-        """ Displays the proposed product and its information to the user
+        """ Sums up and displays the information for the substitution :
+         - name of chosen unhealthy product
+         - name of proposed healthy product
+         - description of proposed healthy product
+         - store(s) which sell(s) proposed healthy product
+         - url of proposed healthy product web page
 
         """
         print(f'\nVoici une alternative plus saine à "{unhealthy_product}" :')
@@ -387,10 +389,11 @@ votre choix :\n')
 
         print(f'{proposed_product[0]["url"]}')
 
-        return proposed_product
-
     def _save_result(self, unhealthy_product, proposed_product, stores_str):
-        """ Allows the user to save the result of its query """
+        """ Allows the user to save the result of its query inserting
+        information in the History table
+
+        """
         print('\nSouhaitez-vous enregistrer ce résultat pour le retrouver plus\
  tard ?\n')
         print('1 - Oui, je sauvegarde')
@@ -425,7 +428,7 @@ saisir 1 ou 2.''')
                 carry_on = False
 
     def _get_saved_results(self):
-        """ Displays 10 last saved results """
+        """ Displays information of the 10 last saved results """
         saved_results = self.history_manager.select()
 
         print('\nVoici les résultats de vos dernières recherches :')
@@ -437,6 +440,26 @@ saisir 1 ou 2.''')
             print(f'Description : {saved_result["description"]}')
             print(f'Disponible chez : {saved_result["stores"]}')
             print(f'{saved_result["url"]}')
+
+    def _get_delay_since_last_update(self):
+        """ Retrieves last update date, calculates and returns the delay
+        until now (number of days)
+
+        """
+        if path.exists('last_update.txt'):
+            with open('last_update.txt', "r") as f:
+                last_update_date = float(f.read())
+
+            delta_secondes = time() - last_update_date
+            delta_jour = delta_secondes / (60*60*24)
+
+            print('Nombre de secondes écoulées depuis la dernière mise à jour : ', delta_secondes)  # A supprimer
+            print('Nombre de jours écoulés depuis la dernière mise à jour : ', delta_jour)  # A supprimer
+
+        else:
+            delta_jour = 0
+
+        return delta_jour
 
 
 def parse_arguments():
