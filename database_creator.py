@@ -28,7 +28,8 @@ class DatabaseCreator:
     def __init__(self):
         """ DatabaseCreator constructor.
 
-        Sets db_name variable and runs _create_database() method.
+        Sets db_name variable.
+        Runs _create_database() method.
 
         """
         db_name = self._set_db_name()
@@ -66,15 +67,13 @@ class DatabaseCreator:
 
         Connects to MySQL via Database class from records library.
         Creates a new MySQL local database.
-        Selects this new database for use.
 
         """
-        connexion = Database(f'mysql+pymysql://{MYSQL_ID}:\
+        connection = Database(f'mysql+pymysql://{MYSQL_ID}:\
 {MYSQL_PW}@localhost/?charset=utf8')
 
-        connexion.query(f'CREATE DATABASE {db_name} CHARACTER SET "utf8"')
+        connection.query(f'CREATE DATABASE {db_name} CHARACTER SET "utf8"')
 
-        connexion.query(f'USE {db_name}')
 
 def main():
     DatabaseCreator()
