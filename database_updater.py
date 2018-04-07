@@ -12,10 +12,10 @@ from time import time
 
 from requests import get
 
-from database import database
+from config import database_connection
 from product_manager import ProductManager
-from categorie_manager import CategorieManager
-from product_categorie_manager import ProductCategorieManager
+from category_manager import CategoryManager
+from product_category_manager import ProductCategoryManager
 from store_manager import StoreManager
 from product_store_manager import ProductStoreManager
 
@@ -42,22 +42,22 @@ class DatabaseUpdater:
 
     """
 
-    def __init__(self):
+    def __init__(self, database):
         """ DatabaseUpdater constructor.
 
         Creates instances of table manager classes.
         Runs _run() method.
 
         """
-        self.product_manager = ProductManager()
-        self.categorie_manager = CategorieManager()
-        self.product_categorie_manager = ProductCategorieManager()
-        self.store_manager = StoreManager()
-        self.product_store_manager = ProductStoreManager()
+        self.product_manager = ProductManager(database)
+        self.category_manager = CategoryManager(database)
+        self.product_category_manager = ProductCategoryManager(database)
+        self.store_manager = StoreManager(database)
+        self.product_store_manager = ProductStoreManager(database)
 
-        self._run()
+        self._run(database)
 
-    def _run(self):
+    def _run(self, database):
         """ Manages database update.
 
         For each product of local database, checks information &
@@ -65,7 +65,7 @@ class DatabaseUpdater:
         Saves update date.
 
         """
-        codes = self._get_products_codes()
+        codes = self._get_products_codes(database)
 
         for i in range(len(codes.all())):
             print('\n********Nouveau produit !*********')  # A supprimer !
@@ -81,7 +81,7 @@ class DatabaseUpdater:
 
         self._save_update_date()
 
-    def _get_products_codes(self):
+    def _get_products_codes(self, database):
         """ Manages product codes retrieving.
 
         Returns 'codes' object containing product id for all products of
@@ -113,8 +113,8 @@ class DatabaseUpdater:
         self.OFF_brand = OFF_brands[0].capitalize()
         OFF_categories_to_strip = (OFF_product['categories']).split(',')
         self.OFF_categories = []
-        for categorie in OFF_categories_to_strip:
-            self.OFF_categories.append(categorie.strip().capitalize())
+        for category in OFF_categories_to_strip:
+            self.OFF_categories.append(category.strip().capitalize())
         OFF_stores_to_strip = (OFF_product['stores']).split(',')
         self.OFF_stores = []
         for store in OFF_stores_to_strip:
@@ -170,7 +170,7 @@ class DatabaseUpdater:
         product.
 
         """
-        local_product_categories_id = self.product_categorie_manager.\
+        local_product_categories_id = self.product_category_manager.\
             select_based_on_product_id(self.OFF_code)
 
         local_product_categories_list = []
@@ -179,9 +179,9 @@ class DatabaseUpdater:
         # print('2 - len(local_product_categories_id) : ', len(local_product_categories_id.all()))  # A supprimer
 
         for i in range(len(local_product_categories_id.all())):
-            categorie_name = self.categorie_manager.select_based_on_id(
-                local_product_categories_id[i]['categorie_id'])
-            local_product_categories_list.append(categorie_name)
+            category_name = self.category_manager.select_based_on_id(
+                local_product_categories_id[i]['category_id'])
+            local_product_categories_list.append(category_name)
 
         return local_product_categories_id, local_product_categories_list
 
@@ -196,19 +196,19 @@ class DatabaseUpdater:
         """
         for i in range(len(local_product_categories_list)):
             if local_product_categories_list[i] not in self.OFF_categories:
-                self.product_categorie_manager.delete(
+                self.product_category_manager.delete(
                     self.OFF_code,
-                    local_product_categories_id[i]['categorie_id'])
+                    local_product_categories_id[i]['category_id'])
 
-                product_categorie = self.product_categorie_manager.\
-                    select_based_on_categorie_id(
-                        local_product_categories_id[i]['categorie_id'])
+                product_category = self.product_category_manager.\
+                    select_based_on_category_id(
+                        local_product_categories_id[i]['category_id'])
                 try:
-                    categorie_id = product_categorie[0]['categorie_id']
-                    print(f'La categorie {categorie_id} est associée à d\'autre(s) produit(s). On la conserve.')
+                    category_id = product_category[0]['category_id']
+                    print(f'La catégorie {category_id} est associée à d\'autre(s) produit(s). On la conserve.')
                 except IndexError:
-                    print('La categorie n\'est associée à aucun autre produit. On la supprime')
-                    self.categorie_manager.delete(
+                    print('La catégorie n\'est associée à aucun autre produit. On la supprime')
+                    self.category_manager.delete(
                         local_product_categories_list[i])
 
     def _add_new_categories(self, local_product_categories_list):
@@ -218,19 +218,19 @@ class DatabaseUpdater:
         database.
 
         """
-        for categorie in self.OFF_categories:
-            if categorie not in local_product_categories_list:
-                local_categorie = self.categorie_manager.\
-                    select_based_on_name(categorie)
+        for category in self.OFF_categories:
+            if category not in local_product_categories_list:
+                local_category = self.category_manager.\
+                    select_based_on_name(category)
                 try:
-                    local_categorie_name = local_categorie[0]['name']
-                    self.product_categorie_manager.insert(
-                        local_categorie_name, self.OFF_name)
+                    local_category_name = local_category[0]['name']
+                    self.product_category_manager.insert(
+                        local_category_name, self.OFF_name)
                 except IndexError:
                     print('La catégorie n\'existe pas')
-                    self.categorie_manager.insert(categorie)
-                    self.product_categorie_manager.insert(
-                        categorie, self.OFF_name)
+                    self.category_manager.insert(category)
+                    self.product_category_manager.insert(
+                        category, self.OFF_name)
 
     def _update_stores_information(self, local_product):
         """ Manages stores information updating.
@@ -326,7 +326,8 @@ class DatabaseUpdater:
 
 
 def main():
-    DatabaseUpdater()
+    database = database_connection()
+    DatabaseUpdater(database)
 
 
 if __name__ == '__main__':
