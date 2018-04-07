@@ -8,7 +8,7 @@ local MySQL database.
 
 """
 
-from database import database
+from config import database_connection
 
 
 class TablesCreator:
@@ -22,22 +22,22 @@ class TablesCreator:
 
     """
 
-    def __init__(self):
+    def __init__(self, database):
         """ TablesCreator constructor.
 
         Runs _create_tables() & _create_foreign_keys() methods.
 
         """
-        self._create_tables()
-        self._create_foreign_keys()
+        self._create_tables(database)
+        self._create_foreign_keys(database)
 
-    def _create_tables(self):
+    def _create_tables(self, database):
         """ Manages tables creation.
 
         Creates 6 empty tables :
         - Product
-        - Categorie
-        - Product_Categorie
+        - Category
+        - Product_Category
         - Store
         - Product_Store
         - History
@@ -52,15 +52,15 @@ class TablesCreator:
                        nutrition_grade CHAR(1) NOT NULL,
                        PRIMARY KEY (product_id))''')
 
-        database.query('''CREATE TABLE Categorie (
-                       categorie_id SMALLINT UNSIGNED AUTO_INCREMENT NOT NULL,
+        database.query('''CREATE TABLE Category (
+                       category_id SMALLINT UNSIGNED AUTO_INCREMENT NOT NULL,
                        name VARCHAR(150) UNIQUE NOT NULL,
-                       PRIMARY KEY (categorie_id))''')
+                       PRIMARY KEY (category_id))''')
 
-        database.query('''CREATE TABLE Product_Categorie (
+        database.query('''CREATE TABLE Product_Category (
                        product_id BIGINT UNSIGNED NOT NULL,
-                       categorie_id SMALLINT UNSIGNED NOT NULL,
-                       PRIMARY KEY (product_id, categorie_id))''')
+                       category_id SMALLINT UNSIGNED NOT NULL,
+                       PRIMARY KEY (product_id, category_id))''')
 
         database.query('''CREATE TABLE Store (
                        store_id SMALLINT UNSIGNED AUTO_INCREMENT NOT NULL,
@@ -82,28 +82,28 @@ class TablesCreator:
                        url VARCHAR(150) NOT NULL,
                        PRIMARY KEY (history_id))''')
 
-    def _create_foreign_keys(self):
+    def _create_foreign_keys(self, database):
         """ Manages foreign keys creation.
 
         Creates foreign keys managing many-to-many relationships
         between :
-            - Product & Product_Categorie tables
-            - Categorie & Product_Categorie tables
+            - Product & Product_Category tables
+            - Category & Product_Category tables
             - Product & Product_Store tables
             - Store & Product_Store tables
 
         """
-        database.query('''ALTER TABLE Product_Categorie
-                       ADD CONSTRAINT product_product_categorie_fk
+        database.query('''ALTER TABLE Product_Category
+                       ADD CONSTRAINT product_product_category_fk
                        FOREIGN KEY (product_id)
                        REFERENCES Product (product_id)
                        ON DELETE NO ACTION
                        ON UPDATE NO ACTION''')
 
-        database.query('''ALTER TABLE Product_Categorie
-                       ADD CONSTRAINT categorie_product_categorie_fk
-                       FOREIGN KEY (categorie_id)
-                       REFERENCES Categorie (categorie_id)
+        database.query('''ALTER TABLE Product_Category
+                       ADD CONSTRAINT category_product_category_fk
+                       FOREIGN KEY (category_id)
+                       REFERENCES Category (category_id)
                        ON DELETE NO ACTION
                        ON UPDATE NO ACTION''')
 
@@ -123,7 +123,8 @@ class TablesCreator:
 
 
 def main():
-    TablesCreator()
+    database = database_connection()
+    TablesCreator(database)
 
 
 if __name__ == "__main__":
