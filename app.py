@@ -18,13 +18,13 @@ from sys import stderr
 from threading import Thread
 from time import time
 
-from config import tag_categories
+from config import database_connection, tag_categories
 from database_creator import DatabaseCreator
 from tables_creator import TablesCreator
 from database_filler import DatabaseFiller
 from database_updater import DatabaseUpdater
 from product_manager import ProductManager
-from product_categorie_manager import ProductCategorieManager
+from product_category_manager import ProductCategoryManager
 from store_manager import StoreManager
 from product_store_manager import ProductStoreManager
 from history_manager import HistoryManager
@@ -45,9 +45,10 @@ class UpdateThread(Thread):
 
     """
 
-    def __init__(self):
+    def __init__(self, database):
         """ UpdateThread constructor."""
         Thread.__init__(self)
+        self.database = database
 
     def run(self):
         """
@@ -56,7 +57,7 @@ class UpdateThread(Thread):
 
         """
         self.is_updating = True
-        DatabaseUpdater()
+        DatabaseUpdater(self.database)
 
 
 class App:
@@ -67,7 +68,7 @@ class App:
         - __init__()
         - _run()
         - _display_menu()
-        - _choose_categorie()
+        - _choose_category()
         - _choose_unhealthy_product()
         - _get_unhealthy_product_categories_id()
         - _get_healthy_products()
@@ -95,10 +96,14 @@ class App:
         """
         if db_create:
             DatabaseCreator()
-            TablesCreator()
-            DatabaseFiller()
 
-        update_thread = UpdateThread()
+        database = database_connection()
+
+        if db_create:
+            TablesCreator(database)
+            DatabaseFiller(database)
+
+        update_thread = UpdateThread(database)
         update_thread.is_updating = False
         delta_jour = self._get_delay_since_last_update()
 
@@ -106,11 +111,11 @@ class App:
             update_thread.start()
 
         # Creates instances of table manager classes
-        self.product_manager = ProductManager()
-        self.product_categorie_manager = ProductCategorieManager()
-        self.store_manager = StoreManager()
-        self.product_store_manager = ProductStoreManager()
-        self.history_manager = HistoryManager()
+        self.product_manager = ProductManager(database)
+        self.product_category_manager = ProductCategoryManager(database)
+        self.store_manager = StoreManager(database)
+        self.product_store_manager = ProductStoreManager(database)
+        self.history_manager = HistoryManager(database)
 
         self._run()
 
@@ -141,14 +146,14 @@ saisir 1, 2 ou 3.''')
                 continue
             else:
                 if starting_choice == 1:
-                    categorie = self._choose_categorie()
+                    category = self._choose_category()
                     unhealthy_product = \
-                        self._choose_unhealthy_product(categorie)
+                        self._choose_unhealthy_product(category)
                     categories_id = \
                         self._get_unhealthy_product_categories_id(
                             unhealthy_product)
                     healthy_products = \
-                        self._get_healthy_products(categorie, categories_id)
+                        self._get_healthy_products(category, categories_id)
                     best_matches = \
                         self._get_best_matches(healthy_products)
                     proposed_product = \
@@ -178,7 +183,7 @@ aliment''')
         print('2 - Retrouver vos substitutions enregistrées')
         print('3 - Quitter l\'application')
 
-    def _choose_categorie(self):
+    def _choose_category(self):
         """ Displays a list of indexed categories and returns the one
         chosen by user.
 
@@ -186,39 +191,39 @@ aliment''')
         carry_on = True
 
         while carry_on:
-            print('\nVeuillez saisir le numéro correspondant à la categorie de \
+            print('\nVeuillez saisir le numéro correspondant à la catégorie de \
 votre choix :\n')
-            for categorie in tag_categories:
-                position = tag_categories.index(categorie) + 1
-                print(f'{position} - {categorie}')
+            for category in tag_categories:
+                position = tag_categories.index(category) + 1
+                print(f'{position} - {category}')
 
             try:
-                categorie_choice = int(input('\n'))
-                assert categorie_choice in range(1, len(tag_categories) + 1)
+                category_choice = int(input('\n'))
+                assert category_choice in range(1, len(tag_categories) + 1)
                 carry_on = False
             except ValueError:
                 print('Saisie invalide.')
                 continue
             except AssertionError:
-                print(f'\n{categorie_choice} est un choix invalide.')
+                print(f'\n{category_choice} est un choix invalide.')
                 continue
 
-        selected_categorie = tag_categories[categorie_choice - 1]
-        return selected_categorie
+        selected_category = tag_categories[category_choice - 1]
+        return selected_category
 
-    def _choose_unhealthy_product(self, categorie):
-        """ Displays 10 unhealthy products of given categorie from local
+    def _choose_unhealthy_product(self, category):
+        """ Displays 10 unhealthy products of given category from local
         database and returns the one chosen by user.
 
         """
         unhealthy_products = self.product_manager.select_products_information(
-            categorie, 'd', 'e')
+            category, 'd', 'e')
 
         carry_on = True
 
         while carry_on:
-            print(f'''\nVeuillez saisir le numéro d'un produit de la categorie \
-{categorie} :\n''')
+            print(f'''\nVeuillez saisir le numéro d'un produit de la catégorie \
+{category} :\n''')
 
             for i in range(10):
                 try:
@@ -248,33 +253,33 @@ votre choix :\n')
         unhealthy product
 
         """
-        unhealthy_product_categories_id = self.product_categorie_manager.\
+        unhealthy_product_categories_id = self.product_category_manager.\
             select_based_on_product_name(unhealthy_product)
 
         unhealthy_product_categories_id_list = []
         for i in range(len(unhealthy_product_categories_id.all())):
             unhealthy_product_categories_id_list.append(
-                unhealthy_product_categories_id[i]['categorie_id'])
+                unhealthy_product_categories_id[i]['category_id'])
 
         return unhealthy_product_categories_id_list
 
-    def _get_healthy_products(self, categorie,
+    def _get_healthy_products(self, category,
                               unhealthy_product_categories_id_list):
         """ Returns a dictionnary of healthy products (= products of the
-        given categorie which nutrition grade is 'a' or 'b') :
+        given category which nutrition grade is 'a' or 'b') :
           - key is the name of healthy product
           - value is the number of categories that this healthy product
         shares with given unhealthy product
 
         """
         healthy_products = self.product_manager.select_products_information(
-            categorie, 'a', 'b')
+            category, 'a', 'b')
 
         healthy_products_dict = {}
 
         for i in range(len(healthy_products.all())):
             # For each healthy product, retrieves categories ids
-            healthy_product_categories_id = self.product_categorie_manager.\
+            healthy_product_categories_id = self.product_category_manager.\
                 select_based_on_product_name(healthy_products[i]['name'])
 
             # For each healthy product, makes a list of categories
@@ -282,11 +287,11 @@ votre choix :\n')
             shared_categories = []
             try:  # Pourquoi ça ne fonctionne pas si j'enlève le Try/Except ?? A supprimer
                 for j in range(len(healthy_products.all())):
-                    if healthy_product_categories_id[j]['categorie_id'] \
+                    if healthy_product_categories_id[j]['category_id'] \
                             in unhealthy_product_categories_id_list:
                         shared_categories. \
                             append(healthy_product_categories_id[j]
-                                   ['categorie_id'])
+                                   ['category_id'])
             except IndexError:
                 pass
 
