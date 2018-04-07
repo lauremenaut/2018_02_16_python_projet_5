@@ -8,8 +8,6 @@ History table.
 
 """
 
-from database import database
-
 
 class HistoryManager:
 
@@ -21,6 +19,14 @@ class HistoryManager:
 
     """
 
+    def __init__(self, database):
+        """ HistoryManager constructor.
+
+        Sets 'self.database' attribute.
+
+        """
+        self.database = database
+
     def insert(self, unhealthy_product, name, description, stores, url):
         """ Manages insertion of given information into History table.
 
@@ -28,19 +34,19 @@ class HistoryManager:
         information) into History table.
 
         """
-        database.query('''INSERT INTO History
-                       VALUES (NULL,
-                               NOW(),
-                               :unhealthy_product,
-                               :healthy_product,
-                               :description,
-                               :stores,
-                               :url)''',
-                       unhealthy_product=unhealthy_product,
-                       healthy_product=name,
-                       description=description,
-                       stores=stores,
-                       url=url)
+        self.database.query('''INSERT INTO History
+                            VALUES (NULL,
+                                    NOW(),
+                                    :unhealthy_product,
+                                    :healthy_product,
+                                    :description,
+                                    :stores,
+                                    :url)''',
+                            unhealthy_product=unhealthy_product,
+                            healthy_product=name,
+                            description=description,
+                            stores=stores,
+                            url=url)
 
     def select(self):
         """ Manages selection of information.
@@ -49,8 +55,8 @@ class HistoryManager:
         product information) from History table.
 
         """
-        last_results = database.query('''SELECT *
-                                       FROM History
-                                       ORDER BY request_date DESC
-                                       LIMIT 10''')
+        last_results = self.database.query('''SELECT *
+                                           FROM History
+                                           ORDER BY request_date DESC
+                                           LIMIT 10''')
         return last_results

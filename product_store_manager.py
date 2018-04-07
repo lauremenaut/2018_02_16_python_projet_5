@@ -8,8 +8,6 @@ with Product_Store table.
 
 """
 
-from database import database
-
 
 class ProductStoreManager:
 
@@ -24,6 +22,14 @@ class ProductStoreManager:
 
     """
 
+    def __init__(self, database):
+        """ ProductStoreManager constructor.
+
+        Sets 'self.database' attribute.
+
+        """
+        self.database = database
+
     def insert(self, store, name):
         """ Manages insertion into Product_Store table.
 
@@ -32,13 +38,13 @@ class ProductStoreManager:
         Note : Unique Key prevents duplicate entry.
 
         """
-        database.query('''INSERT IGNORE INTO
-                       Product_Store (product_id, store_id)
-                       VALUES ((SELECT product_id FROM Product
-                                WHERE name = :name),
-                               (SELECT store_id FROM Store
-                                WHERE name = :store))''',
-                       name=name, store=store)
+        self.database.query('''INSERT IGNORE INTO
+                            Product_Store (product_id, store_id)
+                            VALUES ((SELECT product_id FROM Product
+                                     WHERE name = :name),
+                                    (SELECT store_id FROM Store
+                                     WHERE name = :store))''',
+                            name=name, store=store)
         print(f'La relation {name} / {store} a été ajoutée dans la table Product_Store !')
 
     def select_based_on_product_id(self, product_id):
@@ -48,10 +54,11 @@ class ProductStoreManager:
 
         """
         stores_id = \
-            database.query('''SELECT Product_store.store_id
-                           FROM Product_store
-                           WHERE Product_store.product_id = :product_id''',
-                           product_id=product_id)
+            self.database.query('''SELECT Product_store.store_id
+                                FROM Product_store
+                                WHERE Product_store.product_id = \
+                                    :product_id''',
+                                product_id=product_id)
         return stores_id
 
     def select_based_on_product_name(self, product_name):
@@ -60,13 +67,13 @@ class ProductStoreManager:
         Returns selected stores id for given product name.
 
         """
-        stores_id = database.query('''SELECT Product_Store.store_id
-                                   FROM Product_Store
-                                   JOIN Product
-                                   ON Product.product_id = \
-                                       Product_Store.product_id
-                                   WHERE Product.name = :name''',
-                                   name=product_name)
+        stores_id = self.database.query('''SELECT Product_Store.store_id
+                                        FROM Product_Store
+                                        JOIN Product
+                                        ON Product.product_id = \
+                                            Product_Store.product_id
+                                        WHERE Product.name = :name''',
+                                        name=product_name)
         return stores_id
 
     def select_based_on_store_id(self, store_id):
@@ -76,11 +83,11 @@ class ProductStoreManager:
 
         """
         product_store = \
-            database.query('''SELECT Product_store.store_id,
-                                     Product_store.product_id
-                           FROM Product_store
-                           WHERE Product_store.store_id = :store_id''',
-                           store_id=store_id)
+            self.database.query('''SELECT Product_store.store_id,
+                                          Product_store.product_id
+                                FROM Product_store
+                                WHERE Product_store.store_id = :store_id''',
+                                store_id=store_id)
         return product_store
 
     def delete(self, product_id, store_id):
@@ -89,9 +96,9 @@ class ProductStoreManager:
         Deletes Product / Store relationship from Product_Store table.
 
         """
-        database.query('''DELETE FROM Product_store
-                       WHERE Product_store.product_id = :product_id
-                           AND Product_store.store_id = :store_id''',
-                       product_id=product_id,
-                       store_id=store_id)
+        self.database.query('''DELETE FROM Product_store
+                            WHERE Product_store.product_id = :product_id
+                                AND Product_store.store_id = :store_id''',
+                            product_id=product_id,
+                            store_id=store_id)
         print(f'La relation {product_id} / {store_id} a été supprimée de la table Product_Store !')

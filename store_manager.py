@@ -8,8 +8,6 @@ Store table.
 
 """
 
-from database import database
-
 
 class StoreManager:
 
@@ -23,6 +21,14 @@ class StoreManager:
 
     """
 
+    def __init__(self, database):
+        """ StoreManager constructor.
+
+        Sets 'self.database' attribute.
+
+        """
+        self.database = database
+
     def insert(self, store):
         """ Manages insertion of given store into Store table.
 
@@ -30,8 +36,8 @@ class StoreManager:
         Note : Unique Key on store name column prevents duplicate entry.
 
         """
-        database.query('''INSERT IGNORE INTO Store (name)
-                       VALUES (:store)''', store=store)
+        self.database.query('''INSERT IGNORE INTO Store (name)
+                            VALUES (:store)''', store=store)
         print(f'Le magasin "{store}" a été ajouté à la table Store !')
 
     def select_based_on_id(self, store_id):
@@ -40,10 +46,10 @@ class StoreManager:
         Returns selected store name based on given store id.
 
         """
-        store = database.query('''SELECT Store.name
-                               FROM Store
-                               WHERE Store.store_id = :store_id''',
-                               store_id=store_id)
+        store = self.database.query('''SELECT Store.name
+                                    FROM Store
+                                    WHERE Store.store_id = :store_id''',
+                                    store_id=store_id)
         return store[0]['name']
 
     def select_based_on_name(self, store):
@@ -53,11 +59,11 @@ class StoreManager:
 
         """
         store = \
-            database.query('''SELECT store.name,
-                                     store.store_id
-                           FROM store
-                           WHERE store.name = :store''',
-                           store=store)
+            self.database.query('''SELECT store.name,
+                                          store.store_id
+                                FROM store
+                                WHERE store.name = :store''',
+                                store=store)
         return store
 
     def delete(self, store):
@@ -66,7 +72,7 @@ class StoreManager:
         Deletes store from Store table based on given store name.
 
         """
-        database.query('''DELETE FROM store
-                       WHERE store.name = :store''',
-                       store=store)
+        self.database.query('''DELETE FROM store
+                            WHERE store.name = :store''',
+                            store=store)
         print(f'Le magasin "{store}" a été supprimé de la table Store !')

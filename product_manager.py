@@ -8,8 +8,6 @@ Product table.
 
 """
 
-from database import database
-
 
 class ProductManager:
 
@@ -28,6 +26,14 @@ class ProductManager:
 
     """
 
+    def __init__(self, database):
+        """ ProductManager constructor.
+
+        Sets 'self.database' attribute.
+
+        """
+        self.database = database
+
     def insert(self, code, name, description, brand, url, nutrition_grade):
         """ Manages insertion of given information into Product table.
 
@@ -36,19 +42,19 @@ class ProductManager:
         Note : 'code' is saved as 'product_id'.
 
         """
-        database.query('''INSERT IGNORE INTO Product
-               VALUES (:code,
-                       :name,
-                       :description,
-                       :brand,
-                       :url,
-                       :nutrition_grade)''',
-                       code=code,
-                       name=name,
-                       description=description,
-                       brand=brand,
-                       url=url,
-                       nutrition_grade=nutrition_grade)
+        self.database.query('''INSERT IGNORE INTO Product
+                            VALUES (:code,
+                                    :name,
+                                    :description,
+                                    :brand,
+                                    :url,
+                                    :nutrition_grade)''',
+                            code=code,
+                            name=name,
+                            description=description,
+                            brand=brand,
+                            url=url,
+                            nutrition_grade=nutrition_grade)
 
     def select_product_information(self, code):
         """ Manages selection of product information.
@@ -58,40 +64,41 @@ class ProductManager:
 
         """
         product_information = \
-            database.query('''SELECT Product.product_id,
-                                     Product.name,
-                                     Product.description,
-                                     Product.brand,
-                                     Product.nutrition_grade
-                           FROM Product
-                           WHERE Product.product_id = :code''',
-                           code=code)
+            self.database.query('''SELECT Product.product_id,
+                                          Product.name,
+                                          Product.description,
+                                          Product.brand,
+                                          Product.nutrition_grade
+                                FROM Product
+                                WHERE Product.product_id = :code''',
+                                code=code)
         return product_information
 
-    def select_products_information(self, categorie, n_g_1, n_g_2):
+    def select_products_information(self, category, n_g_1, n_g_2):
         """ Manages selection of product information.
 
-        Returns selected products information for given categorie &
+        Returns selected products information for given category &
         nutrition grades.
 
         """
         products_information = \
-            database.query('''SELECT Product.product_id,
-                                     Product.name,
-                                     Product.description,
-                                     Product.url
-                           FROM Product
-                           JOIN Product_Categorie
-                           ON Product.product_id = Product_Categorie.product_id
-                           JOIN Categorie
-                           ON Categorie.categorie_id = \
-                               Product_Categorie.categorie_id
-                           WHERE Categorie.name = :categorie
-                           AND (Product.nutrition_grade = :n_g_1 OR \
-                               Product.nutrition_grade = :n_g_2)''',
-                           categorie=categorie,
-                           n_g_1=n_g_1,
-                           n_g_2=n_g_2)
+            self.database.query('''SELECT Product.product_id,
+                                          Product.name,
+                                          Product.description,
+                                          Product.url
+                                FROM Product
+                                JOIN Product_Category
+                                ON Product.product_id = \
+                                   Product_Category.product_id
+                                JOIN Category
+                                ON Category.category_id = \
+                                   Product_Category.category_id
+                                WHERE Category.name = :category
+                                    AND (Product.nutrition_grade = :n_g_1 OR \
+                                         Product.nutrition_grade = :n_g_2)''',
+                                category=category,
+                                n_g_1=n_g_1,
+                                n_g_2=n_g_2)
         return products_information
 
     def select_match_information(self, name):
@@ -102,11 +109,11 @@ class ProductManager:
 
         """
         product_name = \
-            database.query('''SELECT Product.name
-                           FROM Product
-                           WHERE name = :name
-                           AND nutrition_grade = "a"''',
-                           name=name)
+            self.database.query('''SELECT Product.name
+                                FROM Product
+                                WHERE name = :name
+                                    AND nutrition_grade = "a"''',
+                                name=name)
         return product_name
 
     def select_healthiest_match_information(self, name):
@@ -116,13 +123,13 @@ class ProductManager:
 
         """
         product_information = \
-            database.query('''SELECT Product.product_id,
-                                     Product.name,
-                                     Product.description,
-                                     Product.url
-                           FROM Product
-                           WHERE Product.name = :name''',
-                           name=name)
+            self.database.query('''SELECT Product.product_id,
+                                          Product.name,
+                                          Product.description,
+                                          Product.url
+                                FROM Product
+                                WHERE Product.name = :name''',
+                                name=name)
         return product_information
 
     def update_name(self, name, code):
@@ -131,10 +138,10 @@ class ProductManager:
         Updates product name for given product code.
 
         """
-        database.query('''UPDATE IGNORE Product
-                       SET name = :name
-                       WHERE Product.product_id = :code''',
-                       name=name, code=code)
+        self.database.query('''UPDATE IGNORE Product
+                            SET name = :name
+                            WHERE Product.product_id = :code''',
+                            name=name, code=code)
 
     def update_description(self, description, code):
         """ Manages product description update.
@@ -142,10 +149,10 @@ class ProductManager:
         Updates product description for given product code.
 
         """
-        database.query('''UPDATE IGNORE Product
-                       SET description = :description
-                       WHERE Product.product_id = :code''',
-                       description=description, code=code)
+        self.database.query('''UPDATE IGNORE Product
+                            SET description = :description
+                            WHERE Product.product_id = :code''',
+                            description=description, code=code)
 
     def update_brand(self, brand, code):
         """ Manages product brand update.
@@ -153,10 +160,10 @@ class ProductManager:
         Updates product brand for given product code.
 
         """
-        database.query('''UPDATE IGNORE Product
-                       SET brand = :brand
-                       WHERE Product.product_id = :code''',
-                       brand=brand, code=code)
+        self.database.query('''UPDATE IGNORE Product
+                            SET brand = :brand
+                            WHERE Product.product_id = :code''',
+                            brand=brand, code=code)
 
     def update_nutrition_grade(self, nutrition_grade, code):
         """ Manages product nutrition grade update.
@@ -164,7 +171,7 @@ class ProductManager:
         Updates product nutrition grade for given product code.
 
         """
-        database.query('''UPDATE IGNORE Product
-                       SET nutrition_grade = :nutrition_grade
-                       WHERE Product.product_id = :code''',
-                       nutrition_grade=nutrition_grade, code=code)
+        self.database.query('''UPDATE IGNORE Product
+                            SET nutrition_grade = :nutrition_grade
+                            WHERE Product.product_id = :code''',
+                            nutrition_grade=nutrition_grade, code=code)
