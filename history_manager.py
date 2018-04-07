@@ -5,6 +5,7 @@
 
 HistoryManager class sets methods containing queries to interact with
 History table.
+Imported in app.py
 
 """
 
@@ -13,7 +14,8 @@ class HistoryManager:
 
     """ Sets HistoryManager class.
 
-    Class consists of 2 methods :
+    Class consists of 3 methods :
+        - __init__()
         - insert()
         - select()
 

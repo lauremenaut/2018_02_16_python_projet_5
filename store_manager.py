@@ -5,6 +5,10 @@
 
 StoreManager class sets methods containing queries to interact with
 Store table.
+Imported in :
+- app.py
+- database_filler.py
+- database_updater.py
 
 """
 
@@ -13,7 +17,8 @@ class StoreManager:
 
     """ Sets StoreManager class.
 
-    Consists of 4 methods :
+    Consists of 5 methods :
+        - __init__()
         - insert()
         - select_store_based_on_id()
         - select_store_based_on_name()

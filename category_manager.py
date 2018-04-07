@@ -5,6 +5,9 @@
 
 CategoryManager class sets methods containing queries to interact with
 CategoryManager table.
+Imported in :
+- database_filler.py
+- database_updater.py
 
 """
 
@@ -13,7 +16,8 @@ class CategoryManager:
 
     """ Sets CategoryManager class.
 
-    Class consists of 4 methods :
+    Class consists of 5 methods :
+        - __init__()
         - insert()
         - select_based_on_id()
         - select_based_on_name()

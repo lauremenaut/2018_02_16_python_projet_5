@@ -5,6 +5,11 @@
 
     Sets database_connection() method.
     Contains tags for requests criteria.
+    Imported in :
+    - app.py
+    - tables_creator.py
+    - database_filler.py
+    - database_updater.py
 
 """
 

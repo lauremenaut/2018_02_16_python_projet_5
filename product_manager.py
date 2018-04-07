@@ -5,6 +5,10 @@
 
 ProductManager class sets methods containing queries to interact with
 Product table.
+Imported in :
+- app.py
+- database_filler.py
+- database_updater.py
 
 """
 
@@ -13,7 +17,8 @@ class ProductManager:
 
     """ Sets ProductManager class.
 
-    Consists of 9 methods :
+    Consists of 10 methods :
+        - __init__()
         - insert()
         - select_product_information()
         - select_products_information()

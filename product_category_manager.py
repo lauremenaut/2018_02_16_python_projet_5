@@ -5,6 +5,10 @@
 
 ProductCategoryManager class sets methods containing queries to
 interact with ProductCategory table.
+Imported in :
+- app.py
+- database_filler.py
+- database_updater.py
 
 """
 
@@ -13,7 +17,8 @@ class ProductCategoryManager:
 
     """ Sets ProductCategoryManager class.
 
-    Class consists of 5 methods :
+    Class consists of 6 methods :
+        - __init__()
         - insert()
         - select_based_on_product_id()
         - select_based_on_product_name()

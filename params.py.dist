@@ -1,8 +1,13 @@
 #! /usr/bin/env python3
 # coding: utf-8
 
-""" File to be updated by the user with personal data before first use
-of the application """
+""" Contains private connection data.
+
+File to be updated by the user with personal data before first use of
+the application.
+Imported in config.py.
+
+"""
 
 # Replace "id" by mysql user identifier and "pw" by mysql user password:
 
