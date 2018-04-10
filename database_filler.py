@@ -10,12 +10,12 @@ Open Food Facts API.
 
 from requests import get
 
-from config import database_connection, nutrition_grades, tag_categories
-from product_manager import ProductManager
 from category_manager import CategoryManager
+from config import database_connection, nutrition_grades, tag_categories
 from product_category_manager import ProductCategoryManager
-from store_manager import StoreManager
+from product_manager import ProductManager
 from product_store_manager import ProductStoreManager
+from store_manager import StoreManager
 
 
 class DatabaseFiller:
@@ -108,7 +108,7 @@ class DatabaseFiller:
                 self.nutrition_grade = product['nutrition_grades'].lower()
 
             except KeyError:
-                print('Missing data')
+                print('Missing data', file=open('print_log.txt', 'a'))
 
             if all([self.code, self.name, self.description, self.brand,
                     self.url, self.nutrition_grade, self.categories[0],

@@ -12,12 +12,12 @@ from time import time
 
 from requests import get
 
-from config import database_connection
-from product_manager import ProductManager
 from category_manager import CategoryManager
+from config import database_connection
 from product_category_manager import ProductCategoryManager
-from store_manager import StoreManager
+from product_manager import ProductManager
 from product_store_manager import ProductStoreManager
+from store_manager import StoreManager
 
 
 class DatabaseUpdater:
@@ -68,8 +68,7 @@ class DatabaseUpdater:
         codes = self._get_products_codes(database)
 
         for i in range(len(codes.all())):
-            print('\n********Nouveau produit !*********')  # A supprimer !
-            try:  # Attention : gérer le cas où le produit a été retiré de la base !!
+            try:
                 self._get_OFF_product(codes, i)
                 local_product = self.product_manager.\
                     select_product_information(self.OFF_code)
@@ -77,7 +76,7 @@ class DatabaseUpdater:
                 self._update_categories_information(local_product)
                 self._update_stores_information(local_product)
             except KeyError as e:
-                print('Aïe, KeyError : ', e)
+                print('Aïe, KeyError : ', e, file=open('print_log.txt', 'a'))
 
         self._save_update_date()
 
@@ -105,9 +104,6 @@ class DatabaseUpdater:
 
         self.OFF_code = OFF_product['code']
         self.OFF_name = OFF_product['product_name'].strip().capitalize()
-
-        print(self.OFF_name)  # A supprimer !
-
         self.OFF_description = OFF_product['generic_name'].capitalize()
         OFF_brands = (OFF_product['brands']).split(',')
         self.OFF_brand = OFF_brands[0].capitalize()
@@ -131,18 +127,18 @@ class DatabaseUpdater:
         """
         if local_product[0]['name'] != self.OFF_name:
             self.product_manager.update_name(self.OFF_name, self.OFF_code)
-            print('"name" updated !')
+            print('"name" updated !', file=open('print_log.txt', 'a'))
         if local_product[0]['description'] != self.OFF_description:
             self.product_manager.update_description(
                 self.OFF_description, self.OFF_code)
-            print('"description" updated !')
+            print('"description" updated !', file=open('print_log.txt', 'a'))
         if local_product[0]['brand'] != self.OFF_brand:
             self.product_manager.update_brand(self.OFF_brand, self.OFF_code)
-            print('"brand" updated !')
+            print('"brand" updated !', file=open('print_log.txt', 'a'))
         if local_product[0]['nutrition_grade'] != self.OFF_nutrition_grade:
             self.product_manager.update_nutrition_grade(
                 self.OFF_nutrition_grade, self.OFF_code)
-            print('"nutrition_grade" updated !')
+            print('"nutrition_grade" updated !', file=open('print_log.txt', 'a'))
 
     def _update_categories_information(self, local_product):
         """ Manages categories information updating.
@@ -154,9 +150,6 @@ class DatabaseUpdater:
         """
         local_product_categories_id, local_product_categories_list = \
             self._get_local_product_categories_information()
-
-        print('A - Catégorie(s) enregistrée(s) en local : ', local_product_categories_list)  # A supprimer
-        print('B - Catégorie(s) récupérée(s) sur OFF : ', self.OFF_categories)  # A supprimer
 
         self._remove_obsolete_categories(local_product,
                                          local_product_categories_id,
@@ -174,9 +167,6 @@ class DatabaseUpdater:
             select_based_on_product_id(self.OFF_code)
 
         local_product_categories_list = []
-
-        # print('1 - local_product_categories_id.all() : ', local_product_categories_id.all())  # A supprimer
-        # print('2 - len(local_product_categories_id) : ', len(local_product_categories_id.all()))  # A supprimer
 
         for i in range(len(local_product_categories_id.all())):
             category_name = self.category_manager.select_based_on_id(
@@ -205,9 +195,13 @@ class DatabaseUpdater:
                         local_product_categories_id[i]['category_id'])
                 try:
                     category_id = product_category[0]['category_id']
-                    print(f'La catégorie {category_id} est associée à d\'autre(s) produit(s). On la conserve.')
+                    # with open('print_log.txt', 'a') as f:
+                    print(f'La catégorie {category_id} est associée à \
+d\'autre(s) produit(s). On la conserve.', file=open('print_log.txt', 'a'))
                 except IndexError:
-                    print('La catégorie n\'est associée à aucun autre produit. On la supprime')
+                    # with open('print_log.txt', 'a') as f:
+                    print('La catégorie n\'est associée à aucun autre \
+produit. On la supprime', file=open('print_log.txt', 'a'))
                     self.category_manager.delete(
                         local_product_categories_list[i])
 
@@ -227,7 +221,7 @@ class DatabaseUpdater:
                     self.product_category_manager.insert(
                         local_category_name, self.OFF_name)
                 except IndexError:
-                    print('La catégorie n\'existe pas')
+                    print('La catégorie n\'existe pas', file=open('print_log.txt', 'a'))
                     self.category_manager.insert(category)
                     self.product_category_manager.insert(
                         category, self.OFF_name)
@@ -242,9 +236,6 @@ class DatabaseUpdater:
         """
         local_product_stores_id, local_product_stores_list = \
             self._get_local_product_stores_information()
-
-        print('C - Magasin(s) enregistré(s) en local : ', local_product_stores_list)  # A supprimer
-        print('D - Magasin(s) récupéré(s) sur OFF : ', self.OFF_stores)  # A supprimer
 
         self._remove_obsolete_stores(local_product, local_product_stores_id,
                                      local_product_stores_list)
@@ -261,9 +252,6 @@ class DatabaseUpdater:
             select_based_on_product_id(self.OFF_code)
 
         local_product_stores_list = []
-
-        # print('1 - local_product_stores_id.all() : ', local_product_stores_id.all())  # A supprimer
-        # print('2 - len(local_product_stores_id) : ', len(local_product_stores_id.all()))  # A supprimer
 
         for i in range(len(local_product_stores_id.all())):
             store_name = self.store_manager.select_based_on_id(
@@ -286,12 +274,15 @@ class DatabaseUpdater:
                     self.OFF_code, local_product_stores_id[i]['store_id'])
 
                 product_store = self.product_store_manager.\
-                    select_based_on_store_id(local_product_stores_id[i]['store_id'])
+                    select_based_on_store_id(
+                        local_product_stores_id[i]['store_id'])
                 try:
                     store_id = product_store[0]['store_id']
-                    print(f'Le magasin {store_id} est associé à d\'autre(s) produit(s). On le conserve.')
+                    print(f'Le magasin {store_id} est associé à \
+d\'autre(s) produit(s). On le conserve.', file=open('print_log.txt', 'a'))
                 except IndexError:
-                    print('Le magasin n\'est associé à aucun autre produit. On le supprime')
+                    print('Le magasin n\'est associé à aucun autre \
+produit. On le supprime', file=open('print_log.txt', 'a'))
                     self.store_manager.delete(local_product_stores_list[i])
 
     def _add_new_stores(self, local_product_stores_list):
@@ -309,7 +300,7 @@ class DatabaseUpdater:
                     self.product_store_manager.insert(local_store_name,
                                                       self.OFF_name)
                 except IndexError:
-                    print('Le magasin n\'existe pas')
+                    print('Le magasin n\'existe pas', file=open('print_log.txt', 'a'))
                     self.store_manager.insert(store)
                     self.product_store_manager.insert(store, self.OFF_name)
 

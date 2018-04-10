@@ -55,7 +55,7 @@ class DatabaseCreator:
                 char = "_"
             db_name = db_name + char
 
-        print("db_name: ", db_name)  # A supprimer
+        print("Nom de la base de données locale : ", db_name)
 
         with open('db_name.txt', "w") as f:
             f.write(db_name)
