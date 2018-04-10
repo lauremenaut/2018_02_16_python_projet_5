@@ -1,5 +1,6 @@
 env
 params.py
-errors_log.txt
-last_update.txt
 db_name.txt
+err_log.txt
+print_log.txt
+last_update.txt
