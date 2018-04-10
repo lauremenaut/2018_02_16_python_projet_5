@@ -14,25 +14,20 @@ required.
 
 from argparse import ArgumentParser
 from os import path
-from sys import stderr
+import sys
 from threading import Thread
 from time import time
 
 from config import database_connection, tag_categories
 from database_creator import DatabaseCreator
-from tables_creator import TablesCreator
 from database_filler import DatabaseFiller
 from database_updater import DatabaseUpdater
-from product_manager import ProductManager
-from product_category_manager import ProductCategoryManager
-from store_manager import StoreManager
-from product_store_manager import ProductStoreManager
 from history_manager import HistoryManager
-
-
-# Où met-on ces 2 lignes ??
-with open('errors_log.txt', 'w') as f:
-    stderr = f
+from product_category_manager import ProductCategoryManager
+from product_manager import ProductManager
+from product_store_manager import ProductStoreManager
+from store_manager import StoreManager
+from tables_creator import TablesCreator
 
 
 class UpdateThread(Thread):
@@ -46,12 +41,18 @@ class UpdateThread(Thread):
     """
 
     def __init__(self, database):
-        """ UpdateThread constructor."""
+        """ UpdateThread constructor.
+
+        Calls Thread constructor.
+        Sets 'self.database' attribute.
+
+        """
         Thread.__init__(self)
         self.database = database
 
     def run(self):
-        """
+        """ Manages thread running.
+
         Sets 'is_updating' variable (useful for proper use of .join())
         Calls DatabaseUpdater()
 
@@ -85,18 +86,27 @@ class App:
     def __init__(self, db_create, db_update):
         """ App constructor.
 
+        Manages redirection of error output towards 'err_log.txt' &
+        flushing of 'print_log.txt'.
         Creates local database if specified by user with 'db_create'
         parsed argument.
         Updates local database if last local database update is older
         than 7 days or if specified by user with 'db_update' parsed
         argument.
-        Creates instances of needed table manager classes
-        Manages the application running
+        Creates instances of needed table manager classes.
+        Manages the application running.
 
         """
+        err_log = open('err_log.txt', 'w')
+        sys.stderr = err_log
+
+        print_log = open('print_log.txt', 'w')
+        print('', file=print_log)
+
         if db_create:
             DatabaseCreator()
 
+        # 'database' attribute - for dependancies injection
         database = database_connection()
 
         if db_create:
@@ -184,8 +194,8 @@ aliment''')
         print('3 - Quitter l\'application')
 
     def _choose_category(self):
-        """ Displays a list of indexed categories and returns the one
-        chosen by user.
+        """ Displays a list of indexed categories and returns the user's
+        choice.
 
         """
         carry_on = True
@@ -213,7 +223,7 @@ votre choix :\n')
 
     def _choose_unhealthy_product(self, category):
         """ Displays 10 unhealthy products of given category from local
-        database and returns the one chosen by user.
+        database and returns the user's choice.
 
         """
         unhealthy_products = self.product_manager.select_products_information(
@@ -285,7 +295,7 @@ votre choix :\n')
             # For each healthy product, makes a list of categories
             # it shares with chosen unhealthy product
             shared_categories = []
-            try:  # Pourquoi ça ne fonctionne pas si j'enlève le Try/Except ?? A supprimer
+            try:
                 for j in range(len(healthy_products.all())):
                     if healthy_product_categories_id[j]['category_id'] \
                             in unhealthy_product_categories_id_list:
@@ -380,6 +390,7 @@ votre choix :\n')
 
     def _display_result(self, unhealthy_product, proposed_product, stores_str):
         """ Sums up and displays the information for the substitution :
+
          - name of chosen unhealthy product
          - name of proposed healthy product
          - description of proposed healthy product
@@ -458,8 +469,10 @@ saisir 1 ou 2.''')
             delta_secondes = time() - last_update_date
             delta_jour = delta_secondes / (60*60*24)
 
-            print('Nombre de secondes écoulées depuis la dernière mise à jour : ', delta_secondes)  # A supprimer
-            print('Nombre de jours écoulés depuis la dernière mise à jour : ', delta_jour)  # A supprimer
+            print('Nombre de secondes écoulées depuis la dernière mise à \
+jour : ', delta_secondes, file=open('print_log.txt', 'a'))
+            print('Nombre de jours écoulés depuis la dernière mise à jour : ',
+                  delta_jour, file=open('print_log.txt', 'a'))
 
         else:
             delta_jour = 0
