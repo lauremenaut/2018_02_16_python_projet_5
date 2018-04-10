@@ -43,7 +43,8 @@ class StoreManager:
         """
         self.database.query('''INSERT IGNORE INTO Store (name)
                             VALUES (:store)''', store=store)
-        print(f'Le magasin "{store}" a été ajouté à la table Store !')
+        print(f'Le magasin "{store}" a été ajouté à la table Store !',
+              file=open('print_log.txt', 'a'))
 
     def select_based_on_id(self, store_id):
         """ Manages selection of store name.
@@ -80,4 +81,5 @@ class StoreManager:
         self.database.query('''DELETE FROM store
                             WHERE store.name = :store''',
                             store=store)
-        print(f'Le magasin "{store}" a été supprimé de la table Store !')
+        print(f'Le magasin "{store}" a été supprimé de la table Store !',
+              file=open('print_log.txt', 'a'))

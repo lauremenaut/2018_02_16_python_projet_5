@@ -50,7 +50,8 @@ class ProductStoreManager:
                                     (SELECT store_id FROM Store
                                      WHERE name = :store))''',
                             name=name, store=store)
-        print(f'La relation {name} / {store} a été ajoutée dans la table Product_Store !')
+        print(f'La relation {name} / {store} a été ajoutée dans la table \
+Product_Store !', file=open('print_log.txt', 'a'))
 
     def select_based_on_product_id(self, product_id):
         """ Manages selection of stores id based on product id.
@@ -106,4 +107,5 @@ class ProductStoreManager:
                                 AND Product_store.store_id = :store_id''',
                             product_id=product_id,
                             store_id=store_id)
-        print(f'La relation {product_id} / {store_id} a été supprimée de la table Product_Store !')
+        print(f'La relation {product_id} / {store_id} a été supprimée de \
+la table Product_Store !', file=open('print_log.txt', 'a'))

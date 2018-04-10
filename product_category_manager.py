@@ -50,7 +50,8 @@ class ProductCategoryManager:
                                     (SELECT category_id FROM Category
                                      WHERE name = :category))''',
                             name=name, category=category)
-        print(f'La relation {name} / {category} a été ajoutée dans la table Product_Category !')
+        print(f'La relation {name} / {category} a été ajoutée dans la \
+table Product_Category !', file=open('print_log.txt', 'a'))
 
     def select_based_on_product_id(self, product_id):
         """ Manages selection of categories id based on product id.
@@ -112,4 +113,5 @@ class ProductCategoryManager:
                                 :category_id''',
                             product_id=product_id,
                             category_id=category_id)
-        print(f'La relation {product_id} / {category_id} a été supprimée de la table Product_Category !')
+        print(f'La relation {product_id} / {category_id} a été supprimée \
+de la table Product_Category !', file=open('print_log.txt', 'a'))
