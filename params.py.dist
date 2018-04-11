@@ -14,8 +14,8 @@ Imported in config.py.
 MYSQL_ID = "id"
 MYSQL_PW = "pw"
 
-# Please be sure that user is granted with privileges allowing him to
-# create a database and interact with it.
+# Please be sure that logged user is granted with privileges allowing
+# him to create a database and interact with it.
 # If needed, run for exemple this MySQL query (logged as 'root'):
 # GRANT ALL ON *.* TO 'MYSQL_ID'@'localhost' IDENTIFIED BY 'MYSQL_PW';
 

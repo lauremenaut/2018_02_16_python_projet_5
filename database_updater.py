@@ -138,7 +138,8 @@ class DatabaseUpdater:
         if local_product[0]['nutrition_grade'] != self.OFF_nutrition_grade:
             self.product_manager.update_nutrition_grade(
                 self.OFF_nutrition_grade, self.OFF_code)
-            print('"nutrition_grade" updated !', file=open('print_log.txt', 'a'))
+            print('"nutrition_grade" updated !', file=open(
+                'print_log.txt', 'a'))
 
     def _update_categories_information(self, local_product):
         """ Manages categories information updating.
@@ -221,7 +222,8 @@ produit. On la supprime', file=open('print_log.txt', 'a'))
                     self.product_category_manager.insert(
                         local_category_name, self.OFF_name)
                 except IndexError:
-                    print('La catégorie n\'existe pas', file=open('print_log.txt', 'a'))
+                    print('La catégorie n\'existe pas', file=open(
+                        'print_log.txt', 'a'))
                     self.category_manager.insert(category)
                     self.product_category_manager.insert(
                         category, self.OFF_name)
@@ -300,7 +302,8 @@ produit. On le supprime', file=open('print_log.txt', 'a'))
                     self.product_store_manager.insert(local_store_name,
                                                       self.OFF_name)
                 except IndexError:
-                    print('Le magasin n\'existe pas', file=open('print_log.txt', 'a'))
+                    print('Le magasin n\'existe pas', file=open(
+                        'print_log.txt', 'a'))
                     self.store_manager.insert(store)
                     self.product_store_manager.insert(store, self.OFF_name)
 

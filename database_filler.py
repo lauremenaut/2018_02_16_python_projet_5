@@ -128,5 +128,6 @@ def main():
     database = database_connection()
     DatabaseFiller(database)
 
+
 if __name__ == '__main__':
     main()

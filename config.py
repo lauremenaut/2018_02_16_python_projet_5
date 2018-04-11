@@ -34,6 +34,7 @@ def database_connection():
 
     return database
 
+
 # Tags for nutrition grades of healthy and unhealthy products
 nutrition_grades = ["a", "b", "d", "e"]
 

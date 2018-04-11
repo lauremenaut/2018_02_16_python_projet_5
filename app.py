@@ -14,9 +14,9 @@ required.
 
 from argparse import ArgumentParser
 from os import path
-import sys
 from threading import Thread
 from time import time
+import sys
 
 from config import database_connection, tag_categories
 from database_creator import DatabaseCreator
@@ -65,8 +65,9 @@ class App:
 
     """ Sets App class.
 
-    Consists of 14 private methods :
+    Consists of 15 private methods :
         - __init__()
+        - _redirection()
         - _run()
         - _display_menu()
         - _choose_category()
@@ -97,11 +98,7 @@ class App:
         Manages the application running.
 
         """
-        err_log = open('err_log.txt', 'w')
-        sys.stderr = err_log
-
-        print_log = open('print_log.txt', 'w')
-        print('', file=print_log)
+        self._redirection()
 
         if db_create:
             DatabaseCreator()
@@ -131,6 +128,15 @@ class App:
 
         if update_thread.is_updating:
             update_thread.join()
+
+    def _redirection(self):
+        """ Manages streams redirection """
+        err_log = open('err_log.txt', 'w')
+        sys.stderr = err_log
+
+        # Flushes 'print_log.txt' from previous log
+        print_log = open('print_log.txt', 'w')
+        print('', file=print_log)
 
     def _run(self):
         """ Manages application running :
@@ -201,8 +207,8 @@ aliment''')
         carry_on = True
 
         while carry_on:
-            print('\nVeuillez saisir le numéro correspondant à la catégorie de \
-votre choix :\n')
+            print('\nVeuillez saisir le numéro correspondant à la catégorie \
+de votre choix :\n')
             for category in tag_categories:
                 position = tag_categories.index(category) + 1
                 print(f'{position} - {category}')
@@ -232,8 +238,8 @@ votre choix :\n')
         carry_on = True
 
         while carry_on:
-            print(f'''\nVeuillez saisir le numéro d'un produit de la catégorie \
-{category} :\n''')
+            print(f'''\nVeuillez saisir le numéro d'un produit de la \
+catégorie {category} :\n''')
 
             for i in range(10):
                 try:
@@ -410,8 +416,8 @@ votre choix :\n')
         information in the History table
 
         """
-        print('\nSouhaitez-vous enregistrer ce résultat pour le retrouver plus\
- tard ?\n')
+        print('\nSouhaitez-vous enregistrer ce résultat pour le retrouver \
+plus tard ?\n')
         print('1 - Oui, je sauvegarde')
         print('2 - Non, merci')
 
