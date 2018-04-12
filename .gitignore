@@ -4,3 +4,5 @@ db_name.txt
 err_log.txt
 print_log.txt
 last_update.txt
+__pycache__/
+.DS_Store
