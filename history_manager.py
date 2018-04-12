@@ -49,6 +49,8 @@ class HistoryManager:
                             description=description,
                             stores=stores,
                             url=url)
+        print(f'La substitution du produit "{name}" a été ajoutée à la table \
+History !', file=open('print_log.txt', 'a'))
 
     def select(self):
         """ Manages selection of information.

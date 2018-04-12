@@ -44,8 +44,8 @@ class CategoryManager:
         self.database.query('''INSERT IGNORE INTO Category (name)
                             VALUES (:category)''',
                             category=category)
-        print(f'La category "{category}" a été ajoutée à la table \
-Catégorie !', file=open('print_log.txt', 'a'))
+        print(f'La catégorie "{category}" a été ajoutée à la table \
+Category !', file=open('print_log.txt', 'a'))
 
     def select_based_on_id(self, category_id):
         """ Manages selection of category name.
@@ -85,5 +85,5 @@ Catégorie !', file=open('print_log.txt', 'a'))
         self.database.query('''DELETE FROM Category
                             WHERE Category.name = :category''',
                             category=category)
-        print(f'La category "{category}" a été supprimée de la table \
-Catégorie !', file=open('print_log.txt', 'a'))
+        print(f'La catégorie "{category}" a été supprimée de la table \
+Category !', file=open('print_log.txt', 'a'))

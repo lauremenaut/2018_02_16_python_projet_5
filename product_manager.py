@@ -60,6 +60,8 @@ class ProductManager:
                             brand=brand,
                             url=url,
                             nutrition_grade=nutrition_grade)
+        print(f'Le produit "{name}" a été ajouté à la table Product !',
+              file=open('print_log.txt', 'a'))
 
     def select_product_information(self, code):
         """ Manages selection of product information.
@@ -147,6 +149,8 @@ class ProductManager:
                             SET name = :name
                             WHERE Product.product_id = :code''',
                             name=name, code=code)
+        print(f'Le nom du produit "{code}" a été modifié dans la table \
+Product !', file=open('print_log.txt', 'a'))
 
     def update_description(self, description, code):
         """ Manages product description update.
@@ -158,6 +162,8 @@ class ProductManager:
                             SET description = :description
                             WHERE Product.product_id = :code''',
                             description=description, code=code)
+        print(f'La description du produit "{code}" a été modifiée dans la \
+table Product !', file=open('print_log.txt', 'a'))
 
     def update_brand(self, brand, code):
         """ Manages product brand update.
@@ -169,6 +175,8 @@ class ProductManager:
                             SET brand = :brand
                             WHERE Product.product_id = :code''',
                             brand=brand, code=code)
+        print(f'La marque du produit "{code}" a été modifiée dans la table \
+Product !', file=open('print_log.txt', 'a'))
 
     def update_nutrition_grade(self, nutrition_grade, code):
         """ Manages product nutrition grade update.
@@ -180,3 +188,5 @@ class ProductManager:
                             SET nutrition_grade = :nutrition_grade
                             WHERE Product.product_id = :code''',
                             nutrition_grade=nutrition_grade, code=code)
+        print(f'La note nutritionnelle du produit "{code}" a été modifiée \
+dans la table Product !', file=open('print_log.txt', 'a'))
