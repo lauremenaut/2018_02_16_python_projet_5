@@ -10,7 +10,7 @@ openpyxl==2.5.0
 post==0.0.26
 public==0.0.65
 PyMySQL==0.8.0
-PyYAML==3.12
+PyYAML==5.4
 query-string==0.0.28
 records==0.5.2
 request==0.0.26
